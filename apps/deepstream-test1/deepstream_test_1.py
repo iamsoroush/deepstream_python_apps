@@ -104,7 +104,7 @@ def osd_sink_pad_buffer_probe(pad,info,u_data):
             fps = 0
         else:
             fps = int(1000 / ((frame_meta.ntp_timestamp - last_ts) / 1e6))
-            last_ts = frame_meta.ntp_timestamp
+        last_ts = frame_meta.ntp_timestamp
         py_nvosd_text_params.display_text = "Frame Number={} Number of Objects={} Vehicle_count={} Person_count={} FPS={}"\
             .format(frame_number, num_rects, obj_counter[PGIE_CLASS_ID_VEHICLE], obj_counter[PGIE_CLASS_ID_PERSON],
                     fps)
