@@ -60,6 +60,7 @@ def osd_sink_pad_buffer_probe(pad,info,u_data):
     batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(gst_buffer))
     l_frame = batch_meta.frame_meta_list
     last_ts = None
+    print('hi')
     while l_frame is not None:
         try:
             # Note that l_frame.data needs a cast to pyds.NvDsFrameMeta
@@ -102,9 +103,10 @@ def osd_sink_pad_buffer_probe(pad,info,u_data):
         # allocated string. Use pyds.get_string() to get the string content.
         if last_ts is None:
             fps = 0
+            last_ts = frame_meta.ntp_timestamp
         else:
             fps = int(1000 / ((frame_meta.ntp_timestamp - last_ts) / 1e6))
-        last_ts = frame_meta.ntp_timestamp
+            last_ts = frame_meta.ntp_timestamp
         py_nvosd_text_params.display_text = "Frame Number={} Number of Objects={} Vehicle_count={} Person_count={} FPS={}"\
             .format(frame_number, num_rects, obj_counter[PGIE_CLASS_ID_VEHICLE], obj_counter[PGIE_CLASS_ID_PERSON],
                     fps)
