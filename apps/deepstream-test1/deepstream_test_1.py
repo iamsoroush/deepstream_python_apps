@@ -59,6 +59,7 @@ def osd_sink_pad_buffer_probe(pad,info,u_data):
     # C address of gst_buffer as input, which is obtained with hash(gst_buffer)
     batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(gst_buffer))
     l_frame = batch_meta.frame_meta_list
+    last_ts = None
     while l_frame is not None:
         try:
             # Note that l_frame.data needs a cast to pyds.NvDsFrameMeta
@@ -99,9 +100,14 @@ def osd_sink_pad_buffer_probe(pad,info,u_data):
         # memory will not be claimed by the garbage collector.
         # Reading the display_text field here will return the C address of the
         # allocated string. Use pyds.get_string() to get the string content.
-        py_nvosd_text_params.display_text = "Frame Number={} Number of Objects={} Vehicle_count={} Person_count={} TS={}"\
+        if last_ts is None:
+            fps = 0
+        else:
+            fps = int(1000 / ((frame_meta.ntp_timestamp - last_ts) / 1e6))
+            last_ts = frame_meta.ntp_timestamp
+        py_nvosd_text_params.display_text = "Frame Number={} Number of Objects={} Vehicle_count={} Person_count={} FPS={}"\
             .format(frame_number, num_rects, obj_counter[PGIE_CLASS_ID_VEHICLE], obj_counter[PGIE_CLASS_ID_PERSON],
-                    frame_meta.ntp_timestamp)
+                    fps)
 
         # Now set the offsets where the string should appear
         py_nvosd_text_params.x_offset = 10
