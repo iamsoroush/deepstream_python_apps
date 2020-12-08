@@ -33,6 +33,9 @@ from common.FPS import GETFPS
 
 import pyds
 
+
+fps_stream = None
+
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
@@ -101,12 +104,10 @@ def osd_sink_pad_buffer_probe(pad,info,u_data):
         # Reading the display_text field here will return the C address of the
         # allocated string. Use pyds.get_string() to get the string content.
 
-        fps_stream = GETFPS(0)
-        fps = fps_stream.get_fps()
+        fps_stream.get_fps()
 
-        py_nvosd_text_params.display_text = "Frame Number={} Number of Objects={} Vehicle_count={} Person_count={} FPS={}"\
-            .format(frame_number, num_rects, obj_counter[PGIE_CLASS_ID_VEHICLE], obj_counter[PGIE_CLASS_ID_PERSON],
-                    fps)
+        py_nvosd_text_params.display_text = "Frame Number={} Number of Objects={} Vehicle_count={} Person_count={}"\
+            .format(frame_number, num_rects, obj_counter[PGIE_CLASS_ID_VEHICLE], obj_counter[PGIE_CLASS_ID_PERSON])
 
         # Now set the offsets where the string should appear
         py_nvosd_text_params.x_offset = 10
@@ -138,6 +139,8 @@ def main(args):
     if len(args) != 2:
         sys.stderr.write("usage: %s <media file or uri>\n" % args[0])
         sys.exit(1)
+
+    fps_stream = GETFPS(0)
 
     # Standard GStreamer initialization
     GObject.threads_init()
