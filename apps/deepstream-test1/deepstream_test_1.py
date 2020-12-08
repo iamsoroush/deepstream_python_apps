@@ -34,8 +34,6 @@ from common.FPS import GETFPS
 import pyds
 
 
-fps_stream = None
-
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
@@ -140,6 +138,7 @@ def main(args):
         sys.stderr.write("usage: %s <media file or uri>\n" % args[0])
         sys.exit(1)
 
+    global fps_stream
     fps_stream = GETFPS(0)
 
     # Standard GStreamer initialization
