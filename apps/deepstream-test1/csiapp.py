@@ -48,11 +48,11 @@ PGIE_CLASS_ID_ROADSIGN = 3
 WRITE_FRAMES = False
 
 
-# def signal_handler(signum, frame):
-#     print('catched your interrupt!')
-#     sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
-#     pipeline.set_state(Gst.State.NULL)
-#     sys.exit(0)
+def signal_handler(signum, frame):
+    print('catched your interrupt!')
+    sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
+    pipeline.set_state(Gst.State.NULL)
+    sys.exit(0)
 
 
 def osd_sink_pad_buffer_probe(pad, info, u_data):
@@ -157,7 +157,7 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
 
 
 if __name__ == '__main__':
-    # signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
 
     fps_stream = GETFPS(0)
 
