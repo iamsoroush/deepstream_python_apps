@@ -23,7 +23,6 @@
 ################################################################################
 
 import sys
-
 sys.path.append('../')
 import gi
 
@@ -36,6 +35,7 @@ from common.bus_call import bus_call
 from common.FPS import GETFPS
 
 import pyds
+from common.is_aarch_64 import is_aarch64
 
 
 PGIE_CLASS_ID_VEHICLE = 0
