@@ -280,7 +280,7 @@ def main(args):
     sinkpad = streammux.get_request_pad("sink_0")
     if not sinkpad:
         sys.stderr.write(" Unable to get the sink pad of streammux \n")
-    srcpad = decoder.get_static_pad("src")
+    srcpad = caps_nvvidconv_src.get_static_pad("src")
     if not srcpad:
         sys.stderr.write(" Unable to get source pad of decoder \n")
     srcpad.link(sinkpad)
