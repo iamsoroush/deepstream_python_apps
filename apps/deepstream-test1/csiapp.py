@@ -340,9 +340,9 @@ if __name__ == '__main__':
     pipeline.set_state(Gst.State.PLAYING)
     try:
         loop.run()
-    except Exception as e:
-        # sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
-        # pipeline.set_state(Gst.State.NULL)
+    except KeyboardInterrupt as e:
+        sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
+        pipeline.set_state(Gst.State.NULL)
         # try:
         #     sys.exit(0)
         # except SystemExit:
@@ -350,7 +350,7 @@ if __name__ == '__main__':
         # print(e)
         pass
     # cleanup
-    pipeline.set_state(Gst.State.NULL)
+    # pipeline.set_state(Gst.State.NULL)
     # sys.exit(0)
 
 
