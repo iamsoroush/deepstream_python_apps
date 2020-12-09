@@ -53,8 +53,6 @@ def signal_handler(signum, frame):
     pipeline.set_state(Gst.State.NULL)
     sys.exit(0)
 
-signal.signal(signal.SIGINT, signal_handler)
-
 
 def osd_sink_pad_buffer_probe(pad, info, u_data):
     frame_number = 0
@@ -159,11 +157,13 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
     return Gst.PadProbeReturn.OK
 
 
-def main():
+if __name__ == '__main__':
     # Check input arguments
     # if len(args) != 2:
     #     sys.stderr.write("usage: %s <media file or uri>\n" % args[0])
     #     sys.exit(1)
+
+    signal.signal(signal.SIGINT, signal_handler)
 
     global fps_stream
     fps_stream = GETFPS(0)
@@ -347,11 +347,9 @@ def main():
     try:
         loop.run()
     except Exception as e:
+        sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
         print(e)
     # cleanup
     pipeline.set_state(Gst.State.NULL)
 
-
-if __name__ == '__main__':
-    main()
 
