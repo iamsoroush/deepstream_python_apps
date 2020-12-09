@@ -163,7 +163,7 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
 
 
 def main():
-    signal.signal(signal.SIGINT, signal_handler)
+    # signal.signal(signal.SIGINT, signal_handler)
 
     fps_stream = GETFPS(0)
 
@@ -174,6 +174,7 @@ def main():
     # Create gstreamer elements
     # Create Pipeline element that will form a connection of other elements
     print("Creating Pipeline \n ")
+    global pipeline
     pipeline = Gst.Pipeline()
 
     if not pipeline:
