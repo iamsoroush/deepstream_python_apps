@@ -23,7 +23,6 @@
 ################################################################################
 
 import sys
-import signal
 
 sys.path.append('../')
 import gi
@@ -33,11 +32,11 @@ import cv2
 
 gi.require_version('Gst', '1.0')
 from gi.repository import GObject, Gst
-from common.is_aarch_64 import is_aarch64
 from common.bus_call import bus_call
 from common.FPS import GETFPS
 
 import pyds
+
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
@@ -47,15 +46,14 @@ PGIE_CLASS_ID_ROADSIGN = 3
 WRITE_FRAMES = False
 
 
-def signal_handler(signum, frame):
-    print('catched your interrupt!')
-    sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
-    pipeline.set_state(Gst.State.NULL)
-    sys.exit(0)
+# def signal_handler(signum, frame):
+#     print('catched your interrupt!')
+#     sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
+#     pipeline.set_state(Gst.State.NULL)
+#     sys.exit(0)
 
 
 def osd_sink_pad_buffer_probe(pad, info, u_data):
-    frame_number = 0
     # Intiallizing object counter with 0.
     obj_counter = {
         PGIE_CLASS_ID_VEHICLE: 0,
@@ -63,7 +61,6 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
         PGIE_CLASS_ID_BICYCLE: 0,
         PGIE_CLASS_ID_ROADSIGN: 0
     }
-    num_rects = 0
 
     gst_buffer = info.get_buffer()
     if not gst_buffer:
@@ -158,14 +155,8 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
 
 
 if __name__ == '__main__':
-    # Check input arguments
-    # if len(args) != 2:
-    #     sys.stderr.write("usage: %s <media file or uri>\n" % args[0])
-    #     sys.exit(1)
+    # signal.signal(signal.SIGINT, signal_handler)
 
-    signal.signal(signal.SIGINT, signal_handler)
-
-    global fps_stream
     fps_stream = GETFPS(0)
 
     # Standard GStreamer initialization
@@ -175,7 +166,6 @@ if __name__ == '__main__':
     # Create gstreamer elements
     # Create Pipeline element that will form a connection of other elements
     print("Creating Pipeline \n ")
-    global pipeline
     pipeline = Gst.Pipeline()
 
     if not pipeline:
@@ -348,7 +338,7 @@ if __name__ == '__main__':
         loop.run()
     except Exception as e:
         sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
-        print(e)
+        # print(e)
     # cleanup
     pipeline.set_state(Gst.State.NULL)
 
