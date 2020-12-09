@@ -239,7 +239,7 @@ def main(args):
     if not capsfilter:
         sys.stderr.write(" Unable to create capsfilter \n")
 
-    caps = Gst.Caps.from_string("video/x-raw(memory:NVMM), format=RGBA")
+    caps = Gst.Caps.from_string("video/x-raw, format=RGBA")
     capsfilter.set_property("caps", caps)
 
     print("Creating Encoder \n")
