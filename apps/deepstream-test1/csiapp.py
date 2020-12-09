@@ -137,8 +137,9 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
             frame_image = np.array(n_frame, copy=True, order='C')
             # covert the array into cv2 default color format
             frame_image = cv2.cvtColor(frame_image, cv2.COLOR_RGBA2BGRA)
-            cv2.imwrite("/frame_" + str(frame_number) + ".jpg",
+            cv2.imwrite("./frame_" + str(frame_number) + ".jpg",
                         frame_image)
+            # print('saved to')
 
         try:
             l_frame = l_frame.next
@@ -260,7 +261,7 @@ def main(args):
     # source.set_property('location', args[1])
 
     source.set_property('bufapi-version', True)
-    caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string('video/x-raw(memory:NVMM), width=1280, height=720, sensor-id=0'))
+    caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string('video/x-raw(memory:NVMM), width=1280, height=720, sensor-id=0, format=(string)NV12'))
 
     streammux.set_property('width', 1280)
     streammux.set_property('height', 720)
