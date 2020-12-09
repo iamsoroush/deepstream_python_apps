@@ -43,7 +43,7 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-WRITE_FRAMES = False
+WRITE_FRAMES = True
 
 
 def osd_sink_pad_buffer_probe(pad, info, u_data):
