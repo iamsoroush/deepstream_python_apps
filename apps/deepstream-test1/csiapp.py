@@ -260,7 +260,7 @@ def main(args):
     # source.set_property('location', args[1])
 
     source.set_property('bufapi-version', True)
-    caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string('video/x-raw(memory:NVMM), width=1280, height=720, sensor-id=0, format=NV12'))
+    caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string('video/x-raw(memory:NVMM), width=1280, height=720, sensor-id=0'))
 
     streammux.set_property('width', 1280)
     streammux.set_property('height', 720)
