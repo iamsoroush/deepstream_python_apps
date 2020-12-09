@@ -27,6 +27,7 @@ import sys
 sys.path.append('../')
 sys.path.append('/opt/nvidia/deepstream/deepstream/lib')
 import signal
+import time
 
 import gi
 
@@ -342,7 +343,9 @@ if __name__ == '__main__':
         loop.run()
     except KeyboardInterrupt as e:
         sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
+        time.sleep(2)
         pipeline.set_state(Gst.State.NULL)
+        # loop.quit()
         # try:
         #     sys.exit(0)
         # except SystemExit:
