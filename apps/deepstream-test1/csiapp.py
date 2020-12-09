@@ -25,6 +25,7 @@
 import sys
 sys.path.append('../')
 sys.path.append('/opt/nvidia/deepstream/deepstream/lib')
+import signal
 
 import gi
 
