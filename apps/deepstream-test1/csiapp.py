@@ -135,9 +135,9 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
 
 def main(args):
     # Check input arguments
-    if len(args) != 2:
-        sys.stderr.write("usage: %s <media file or uri>\n" % args[0])
-        sys.exit(1)
+    # if len(args) != 2:
+    #     sys.stderr.write("usage: %s <media file or uri>\n" % args[0])
+    #     sys.exit(1)
 
     global fps_stream
     fps_stream = GETFPS(0)
@@ -190,10 +190,7 @@ def main(args):
     if not nvosd:
         sys.stderr.write(" Unable to create nvosd \n")
 
-    # Finally render the osd output
-    # if is_aarch64():
-    #     transform = Gst.ElementFactory.make("nvegltransform", "nvegl-transform")
-
+    ### File writer ###
     print("Creating Queue \n")
     queue = Gst.ElementFactory.make("queue", "queue")
     if not queue:
@@ -237,6 +234,7 @@ def main(args):
     sink.set_property("location", "./out_csi.mp4")
     sink.set_property("sync", 1)
     sink.set_property("async", 0)
+    ### File writer ###
 
     # print("Creating EGLSink \n")
     # sink = Gst.ElementFactory.make("nveglglessink", "nvvideo-renderer")
@@ -247,7 +245,7 @@ def main(args):
     # source.set_property('location', args[1])
 
     source.set_property('bufapi-version', True)
-    caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string('video/x-raw(memory:NVMM), sensor-id=0, width=1280, height=720'))
+    caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string('video/x-raw(memory:NVMM), width=1280, height=720, bitrate=2000000'))
 
     streammux.set_property('width', 1280)
     streammux.set_property('height', 720)
@@ -270,8 +268,6 @@ def main(args):
     pipeline.add(codeparser)
     pipeline.add(container)
     pipeline.add(sink)
-    # if is_aarch64():
-    #     pipeline.add(transform)
 
     # we link the elements together
     # file-source -> h264-parser -> nvh264-decoder ->
