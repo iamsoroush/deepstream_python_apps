@@ -55,7 +55,10 @@ def signal_handler(signum, frame):
     print('catched your interrupt!')
     sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
     pipeline.set_state(Gst.State.NULL)
-    # sys.exit(0)
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, signal_handler)
 
 
 def osd_sink_pad_buffer_probe(pad, info, u_data):
@@ -342,8 +345,9 @@ if __name__ == '__main__':
     try:
         loop.run()
     except KeyboardInterrupt as e:
-        sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
-        time.sleep(2)
+        # sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
+        pipeline.send_event(Gst.Event.new_eos())
+        # time.sleep(2)
         pipeline.set_state(Gst.State.NULL)
         sys.exit(0)
         # loop.quit()
