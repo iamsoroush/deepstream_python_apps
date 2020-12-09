@@ -344,22 +344,24 @@ if __name__ == '__main__':
     pipeline.set_state(Gst.State.PLAYING)
     try:
         loop.run()
-    except KeyboardInterrupt as e:
-        print('catched you')
-        sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
-        pipeline.send_event(Gst.Event.new_eos())
-        # time.sleep(2)
-        pipeline.set_state(Gst.State.NULL)
-        loop.quit()
-        # sys.exit(0)
-        # loop.quit()
-        # try:
-        #     sys.exit(0)
-        # except SystemExit:
-        #     os._exit(0)
-        # print(e)
+    # except KeyboardInterrupt as e:
+    #     print('catched you')
+    #     sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
+    #     pipeline.send_event(Gst.Event.new_eos())
+    #     # time.sleep(2)
+    #     pipeline.set_state(Gst.State.NULL)
+    #     loop.quit()
+    #     # sys.exit(0)
+    #     # loop.quit()
+    #     # try:
+    #     #     sys.exit(0)
+    #     # except SystemExit:
+    #     #     os._exit(0)
+    #     # print(e)
+    except:
+        pass
     # cleanup
-    # pipeline.set_state(Gst.State.NULL)
+    pipeline.set_state(Gst.State.NULL)
     # sys.exit(0)
 
 
