@@ -44,7 +44,7 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-WRITE_FRAMES = True
+WRITE_FRAMES = False
 
 
 def signal_handler(signum, frame):
