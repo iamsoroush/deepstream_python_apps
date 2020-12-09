@@ -345,7 +345,7 @@ if __name__ == '__main__':
     try:
         loop.run()
     except KeyboardInterrupt as e:
-        # sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
+        sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
         pipeline.send_event(Gst.Event.new_eos())
         # time.sleep(2)
         pipeline.set_state(Gst.State.NULL)
