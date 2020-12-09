@@ -22,13 +22,9 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
-import os
 import sys
-sys.path.append('../')
-sys.path.append('/opt/nvidia/deepstream/deepstream/lib')
-import signal
-import time
 
+sys.path.append('../')
 import gi
 
 import numpy as np
@@ -36,29 +32,22 @@ import cv2
 
 gi.require_version('Gst', '1.0')
 from gi.repository import GObject, Gst
+from common.is_aarch_64 import is_aarch64
 from common.bus_call import bus_call
 from common.FPS import GETFPS
 
 import pyds
-# from common.is_aarch_64 import is_aarch64
-
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-WRITE_FRAMES = False
-
-
-def signal_handler(signum, frame):
-    print('catched your interrupt!')
-    sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
-    pipeline.set_state(Gst.State.NULL)
-    sys.exit(0)
+WRITE_FRAMES = True
 
 
 def osd_sink_pad_buffer_probe(pad, info, u_data):
+    frame_number = 0
     # Intiallizing object counter with 0.
     obj_counter = {
         PGIE_CLASS_ID_VEHICLE: 0,
@@ -66,6 +55,7 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
         PGIE_CLASS_ID_BICYCLE: 0,
         PGIE_CLASS_ID_ROADSIGN: 0
     }
+    num_rects = 0
 
     gst_buffer = info.get_buffer()
     if not gst_buffer:
@@ -159,7 +149,12 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
     return Gst.PadProbeReturn.OK
 
 
-def main():
+def main(args):
+    # Check input arguments
+    # if len(args) != 2:
+    #     sys.stderr.write("usage: %s <media file or uri>\n" % args[0])
+    #     sys.exit(1)
+
     global fps_stream
     fps_stream = GETFPS(0)
 
@@ -170,7 +165,6 @@ def main():
     # Create gstreamer elements
     # Create Pipeline element that will form a connection of other elements
     print("Creating Pipeline \n ")
-    global pipeline
     pipeline = Gst.Pipeline()
 
     if not pipeline:
@@ -266,12 +260,11 @@ def main():
         sys.stderr.write(" Unable to create code parser \n")
 
     print("Creating Sink \n")
-    global sink
     sink = Gst.ElementFactory.make("filesink", "filesink")
     if not sink:
         sys.stderr.write(" Unable to create file sink \n")
 
-    sink.set_property("location", "./{}.mp4".format(sys.argv[1]))
+    sink.set_property("location", "./out_csi.mp4")
     sink.set_property("sync", 1)
     sink.set_property("async", 0)
 
@@ -341,27 +334,12 @@ def main():
     pipeline.set_state(Gst.State.PLAYING)
     try:
         loop.run()
-    # except KeyboardInterrupt as e:
-    #     print('catched you')
-    #     sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
-    #     pipeline.send_event(Gst.Event.new_eos())
-    #     # time.sleep(2)
-    #     pipeline.set_state(Gst.State.NULL)
-    #     loop.quit()
-    #     # sys.exit(0)
-    #     # loop.quit()
-    #     # try:
-    #     #     sys.exit(0)
-    #     # except SystemExit:
-    #     #     os._exit(0)
-    #     # print(e)
     except Exception as e:
-        pass
+        print(e)
     # cleanup
     pipeline.set_state(Gst.State.NULL)
-    # sys.exit(0)
 
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT, signal_handler)
-    sys.exit(main())
+    sys.exit(main(sys.argv))
+
