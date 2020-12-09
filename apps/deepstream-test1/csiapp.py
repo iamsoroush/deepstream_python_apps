@@ -243,8 +243,8 @@ def main(args):
     # if not sink:
     #     sys.stderr.write(" Unable to create egl sink \n")
 
-    print("Playing file %s " % args[1])
-    source.set_property('location', args[1])
+    # print("Playing file %s " % args[1])
+    # source.set_property('location', args[1])
 
     streammux.set_property('width', 1280)
     streammux.set_property('height', 720)
