@@ -43,10 +43,11 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-WRITE_FRAMES = True
+WRITE_FRAMES = False
 
 
 def osd_sink_pad_buffer_probe(pad, info, u_data):
+    print('got a new frame ...')
     frame_number = 0
     # Intiallizing object counter with 0.
     obj_counter = {
@@ -308,7 +309,16 @@ def main(args):
     nvvidconv2.link(capsfilter)
     capsfilter.link(encoder)
     encoder.link(codeparser)
-    codeparser.link(container)
+    # codeparser.link(container)
+
+    sinkpad1 = container.get_request_pad("video_0")
+    if not sinkpad1:
+        sys.stderr.write(" Unable to get the sink pad of qtmux \n")
+    srcpad1 = codeparser.get_static_pad("src")
+    if not srcpad1:
+        sys.stderr.write(" Unable to get mpeg4 parse src pad \n")
+    srcpad1.link(sinkpad1)
+
     container.link(sink)
 
     # create an event loop and feed gstreamer bus mesages to it
