@@ -23,6 +23,7 @@
 ################################################################################
 
 import sys
+import signal
 
 sys.path.append('../')
 import gi
@@ -44,6 +45,13 @@ PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
 WRITE_FRAMES = True
+
+
+def signal_handler(signum, frame):
+    sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
+    print('catched your interrupt!')
+    pipeline.set_state(Gst.State.NULL)
+    sys.exit(0)
 
 
 def osd_sink_pad_buffer_probe(pad, info, u_data):
@@ -165,6 +173,7 @@ def main(args):
     # Create gstreamer elements
     # Create Pipeline element that will form a connection of other elements
     print("Creating Pipeline \n ")
+    global pipeline
     pipeline = Gst.Pipeline()
 
     if not pipeline:
@@ -260,6 +269,7 @@ def main(args):
         sys.stderr.write(" Unable to create code parser \n")
 
     print("Creating Sink \n")
+    global sink
     sink = Gst.ElementFactory.make("filesink", "filesink")
     if not sink:
         sys.stderr.write(" Unable to create file sink \n")
@@ -341,5 +351,6 @@ def main(args):
 
 
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, signal_handler)
     sys.exit(main(sys.argv))
 
