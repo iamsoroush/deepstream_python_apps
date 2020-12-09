@@ -22,6 +22,7 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
+import os
 import sys
 sys.path.append('../')
 sys.path.append('/opt/nvidia/deepstream/deepstream/lib')
@@ -342,8 +343,13 @@ if __name__ == '__main__':
     except Exception as e:
         sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
         pipeline.set_state(Gst.State.NULL)
+        try:
+            sys.exit(0)
+        except SystemExit:
+            os._exit(0)
         # print(e)
     # cleanup
     pipeline.set_state(Gst.State.NULL)
+    sys.exit(0)
 
 
