@@ -27,6 +27,9 @@ import sys
 sys.path.append('../')
 import gi
 
+import numpy as np
+import cv2
+
 gi.require_version('Gst', '1.0')
 from gi.repository import GObject, Gst
 from common.is_aarch_64 import is_aarch64
@@ -39,6 +42,8 @@ PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
+
+WRITE_FRAMES = True
 
 
 def osd_sink_pad_buffer_probe(pad, info, u_data):
@@ -125,6 +130,16 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
         # Using pyds.get_string() to get display_text as string
         print(pyds.get_string(py_nvosd_text_params.display_text))
         pyds.nvds_add_display_meta_to_frame(frame_meta, display_meta)
+
+        if WRITE_FRAMES:
+            n_frame = pyds.get_nvds_buf_surface(hash(gst_buffer), frame_meta.batch_id)
+            # convert python array into numy array format.
+            frame_image = np.array(n_frame, copy=True, order='C')
+            # covert the array into cv2 default color format
+            frame_image = cv2.cvtColor(frame_image, cv2.COLOR_RGBA2BGRA)
+            cv2.imwrite("/frame_" + str(frame_number) + ".jpg",
+                        frame_image)
+
         try:
             l_frame = l_frame.next
         except StopIteration:
