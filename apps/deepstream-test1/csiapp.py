@@ -54,11 +54,8 @@ WRITE_FRAMES = False
 def signal_handler(signum, frame):
     print('catched your interrupt!')
     sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
-    # pipeline.set_state(Gst.State.NULL)
+    pipeline.set_state(Gst.State.NULL)
     sys.exit(0)
-
-
-signal.signal(signal.SIGINT, signal_handler)
 
 
 def osd_sink_pad_buffer_probe(pad, info, u_data):
@@ -163,8 +160,6 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
 
 
 def main():
-    # signal.signal(signal.SIGINT, signal_handler)
-
     global fps_stream
     fps_stream = GETFPS(0)
 
@@ -360,7 +355,7 @@ def main():
     #     # except SystemExit:
     #     #     os._exit(0)
     #     # print(e)
-    except:
+    except Exception as e:
         pass
     # cleanup
     pipeline.set_state(Gst.State.NULL)
@@ -368,4 +363,5 @@ def main():
 
 
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, signal_handler)
     sys.exit(main())
