@@ -189,7 +189,7 @@ def main(args):
 
     source.set_property('bufapi-version', True)
     caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string(
-        'video/x-raw(memory:NVMM), sensor-id=0, width=1280, height=720'))
+        'video/x-raw(memory:NVMM), width=1280, height=720'))
 
 
 
