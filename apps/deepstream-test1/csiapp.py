@@ -341,6 +341,7 @@ if __name__ == '__main__':
         loop.run()
     except Exception as e:
         sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
+        pipeline.set_state(Gst.State.NULL)
         # print(e)
     # cleanup
     pipeline.set_state(Gst.State.NULL)
