@@ -54,7 +54,7 @@ def signal_handler(signum, frame):
     print('catched your interrupt!')
     sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
     pipeline.set_state(Gst.State.NULL)
-    sys.exit(0)
+    # sys.exit(0)
 
 
 def osd_sink_pad_buffer_probe(pad, info, u_data):
@@ -343,13 +343,13 @@ if __name__ == '__main__':
     except Exception as e:
         sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
         pipeline.set_state(Gst.State.NULL)
-        try:
-            sys.exit(0)
-        except SystemExit:
-            os._exit(0)
+        # try:
+        #     sys.exit(0)
+        # except SystemExit:
+        #     os._exit(0)
         # print(e)
     # cleanup
     pipeline.set_state(Gst.State.NULL)
-    sys.exit(0)
+    # sys.exit(0)
 
 
