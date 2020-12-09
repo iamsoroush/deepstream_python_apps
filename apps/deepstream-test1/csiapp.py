@@ -170,6 +170,9 @@ def main(args):
     if not pipeline:
         sys.stderr.write(" Unable to create Pipeline \n")
 
+
+
+    ### Source
     source = Gst.ElementFactory.make("nvarguscamerasrc", "src-elem")
     if not source:
         sys.stderr.write(" Unable to create Source \n")
@@ -184,6 +187,13 @@ def main(args):
     if not caps_nvvidconv_src:
         sys.stderr.write(" Unable to create capsfilter \n")
 
+    source.set_property('bufapi-version', True)
+    caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string(
+        'video/x-raw(memory:NVMM), sensor-id=0, width=1280, height=720'))
+
+
+
+    ### Middle ###
     # Create nvstreammux instance to form batches from one or more sources.
     streammux = Gst.ElementFactory.make("nvstreammux", "Stream-muxer")
     if not streammux:
@@ -202,9 +212,16 @@ def main(args):
 
     # Create OSD to draw on the converted RGBA buffer
     nvosd = Gst.ElementFactory.make("nvdsosd", "onscreendisplay")
-
     if not nvosd:
         sys.stderr.write(" Unable to create nvosd \n")
+
+    streammux.set_property('width', 1280)
+    streammux.set_property('height', 720)
+    streammux.set_property('batch-size', 1)
+    streammux.set_property('batched-push-timeout', 4000000)
+    pgie.set_property('config-file-path', "dstest1_pgie_config.txt")
+
+
 
     ### File writer ###
     print("Creating Queue \n")
@@ -250,25 +267,10 @@ def main(args):
     sink.set_property("location", "./out_csi.mp4")
     sink.set_property("sync", 1)
     sink.set_property("async", 0)
-    ### File writer ###
 
-    # print("Creating EGLSink \n")
-    # sink = Gst.ElementFactory.make("nveglglessink", "nvvideo-renderer")
-    # if not sink:
-    #     sys.stderr.write(" Unable to create egl sink \n")
 
-    # print("Playing file %s " % args[1])
-    # source.set_property('location', args[1])
 
-    source.set_property('bufapi-version', True)
-    caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string('video/x-raw(memory:NVMM), width=1280, height=720, sensor-id=0, format=(string)NV12'))
-
-    streammux.set_property('width', 1280)
-    streammux.set_property('height', 720)
-    streammux.set_property('batch-size', 1)
-    streammux.set_property('batched-push-timeout', 4000000)
-    pgie.set_property('config-file-path', "dstest1_pgie_config.txt")
-
+    ### Add elements to pipeline
     print("Adding elements to Pipeline \n")
     pipeline.add(source)
     pipeline.add(nvvidconv_src)
@@ -285,9 +287,9 @@ def main(args):
     pipeline.add(container)
     pipeline.add(sink)
 
-    # we link the elements together
-    # file-source -> h264-parser -> nvh264-decoder ->
-    # nvinfer -> nvvidconv -> nvosd -> video-renderer
+
+
+    ### Link the elements
     print("Linking elements in the Pipeline \n")
     source.link(nvvidconv_src)
     nvvidconv_src.link(caps_nvvidconv_src)
@@ -298,6 +300,7 @@ def main(args):
     srcpad = caps_nvvidconv_src.get_static_pad("src")
     if not srcpad:
         sys.stderr.write(" Unable to get source pad of decoder \n")
+
     srcpad.link(sinkpad)
     streammux.link(pgie)
     pgie.link(nvvidconv)
@@ -331,8 +334,8 @@ def main(args):
     pipeline.set_state(Gst.State.PLAYING)
     try:
         loop.run()
-    except:
-        pass
+    except Exception as e:
+        print(e)
     # cleanup
     pipeline.set_state(Gst.State.NULL)
 
