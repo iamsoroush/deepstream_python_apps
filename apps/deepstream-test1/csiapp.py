@@ -345,6 +345,7 @@ if __name__ == '__main__':
         sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
         time.sleep(2)
         pipeline.set_state(Gst.State.NULL)
+        sys.exit(0)
         # loop.quit()
         # try:
         #     sys.exit(0)
