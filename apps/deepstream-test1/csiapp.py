@@ -270,7 +270,7 @@ if __name__ == '__main__':
     if not sink:
         sys.stderr.write(" Unable to create file sink \n")
 
-    sink.set_property("location", "./out_csi.mp4")
+    sink.set_property("location", "./{}.mp4".format(sys.argv[1]))
     sink.set_property("sync", 1)
     sink.set_property("async", 0)
 
@@ -341,13 +341,14 @@ if __name__ == '__main__':
     try:
         loop.run()
     except Exception as e:
-        sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
-        pipeline.set_state(Gst.State.NULL)
+        # sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
+        # pipeline.set_state(Gst.State.NULL)
         # try:
         #     sys.exit(0)
         # except SystemExit:
         #     os._exit(0)
         # print(e)
+        pass
     # cleanup
     pipeline.set_state(Gst.State.NULL)
     # sys.exit(0)
