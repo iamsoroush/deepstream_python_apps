@@ -165,6 +165,7 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
 def main():
     # signal.signal(signal.SIGINT, signal_handler)
 
+    global fps_stream
     fps_stream = GETFPS(0)
 
     # Standard GStreamer initialization
