@@ -333,6 +333,7 @@ if __name__ == '__main__':
         loop.run()
     except KeyboardInterrupt as e:
         sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
+        pipeline.send_event(Gst.Event.new_eos())
 
         # Wait for EOS to be catched up by the bus
         msg = bus.timed_pop_filtered(
