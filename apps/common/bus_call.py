@@ -29,6 +29,7 @@ from gi.repository import GObject, Gst
 
 
 def bus_call(bus, message, loop):
+    print('buss called on {}'.format(message))
     t = message.type
     if t == Gst.MessageType.EOS:
         sys.stdout.write("End-of-stream\n")
