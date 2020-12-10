@@ -25,6 +25,7 @@
 import sys
 sys.path.append('../')
 sys.path.append('/opt/nvidia/deepstream/deepstream/lib')
+from time import sleep
 
 import gi
 
@@ -338,6 +339,8 @@ if __name__ == '__main__':
             Gst.CLOCK_TIME_NONE,
             Gst.MessageType.EOS
         )
+
+        sleep(5)
     except Exception as e:
         print(e)
     finally:
