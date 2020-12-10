@@ -315,7 +315,7 @@ if __name__ == '__main__':
     loop = GObject.MainLoop()
     bus = pipeline.get_bus()
     bus.add_signal_watch()
-    bus.connect("message", bus_call, loop)
+    bus.connect("message::eos", bus_call, loop)
 
     # Lets add probe to get informed of the meta data generated, we add probe to
     # the sink pad of the osd element, since by that time, the buffer would have
@@ -336,7 +336,6 @@ if __name__ == '__main__':
         # pipeline.send_event(Gst.Event.new_eos())
         # pipeline.set_state(Gst.State.NULL)
         source.send_event(Gst.Event.new_eos())
-        loop.quit()
 
         # Wait for EOS to be catched up by the bus
         # msg = bus.timed_pop_filtered(
@@ -348,4 +347,5 @@ if __name__ == '__main__':
     except Exception as e:
         print(e)
     finally:
+        loop.quit()
         pipeline.set_state(Gst.State.NULL)
