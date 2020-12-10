@@ -261,7 +261,7 @@ if __name__ == '__main__':
     if not sink:
         sys.stderr.write(" Unable to create file sink \n")
 
-    sink.set_property("location", "./out_csi.mp4")
+    sink.set_property("location", "./{}.mp4".format(sys.argv[1]))
     sink.set_property("sync", 1)
     sink.set_property("async", 0)
 
