@@ -334,7 +334,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt as e:
         # sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
         # pipeline.send_event(Gst.Event.new_eos())
-        pipeline.set_state(Gst.State.NULL)
+        # pipeline.set_state(Gst.State.NULL)
         source.send_event(Gst.Event.new_eos())
         loop.quit()
 
@@ -348,7 +348,4 @@ if __name__ == '__main__':
     except Exception as e:
         print(e)
     finally:
-        # pipeline.set_state(Gst.State.NULL)
-        pass
-
-
+        pipeline.set_state(Gst.State.NULL)
