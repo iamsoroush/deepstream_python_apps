@@ -23,9 +23,10 @@
 ################################################################################
 
 import sys
+sys.path.append('../')
+sys.path.append('/opt/nvidia/deepstream/deepstream/lib')
 import signal
 
-sys.path.append('../')
 import gi
 
 import numpy as np
@@ -33,29 +34,29 @@ import cv2
 
 gi.require_version('Gst', '1.0')
 from gi.repository import GObject, Gst
-from common.is_aarch_64 import is_aarch64
 from common.bus_call import bus_call
 from common.FPS import GETFPS
 
 import pyds
+# from common.is_aarch_64 import is_aarch64
+
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
-WRITE_FRAMES = True
+WRITE_FRAMES = False
 
 
 def signal_handler(signum, frame):
-    sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
     print('catched your interrupt!')
+    sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
     pipeline.set_state(Gst.State.NULL)
     sys.exit(0)
 
 
 def osd_sink_pad_buffer_probe(pad, info, u_data):
-    frame_number = 0
     # Intiallizing object counter with 0.
     obj_counter = {
         PGIE_CLASS_ID_VEHICLE: 0,
@@ -63,7 +64,6 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
         PGIE_CLASS_ID_BICYCLE: 0,
         PGIE_CLASS_ID_ROADSIGN: 0
     }
-    num_rects = 0
 
     gst_buffer = info.get_buffer()
     if not gst_buffer:
@@ -157,13 +157,9 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
     return Gst.PadProbeReturn.OK
 
 
-def main(args):
-    # Check input arguments
-    # if len(args) != 2:
-    #     sys.stderr.write("usage: %s <media file or uri>\n" % args[0])
-    #     sys.exit(1)
+if __name__ == '__main__':
+    signal.signal(signal.SIGINT, signal_handler)
 
-    global fps_stream
     fps_stream = GETFPS(0)
 
     # Standard GStreamer initialization
@@ -173,7 +169,6 @@ def main(args):
     # Create gstreamer elements
     # Create Pipeline element that will form a connection of other elements
     print("Creating Pipeline \n ")
-    global pipeline
     pipeline = Gst.Pipeline()
 
     if not pipeline:
@@ -345,12 +340,10 @@ def main(args):
     try:
         loop.run()
     except Exception as e:
-        print(e)
+        sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
+        pipeline.set_state(Gst.State.NULL)
+        # print(e)
     # cleanup
     pipeline.set_state(Gst.State.NULL)
 
-
-if __name__ == '__main__':
-    signal.signal(signal.SIGINT, signal_handler)
-    sys.exit(main(sys.argv))
 
