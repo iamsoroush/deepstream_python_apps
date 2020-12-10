@@ -335,17 +335,16 @@ if __name__ == '__main__':
         # sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
         # pipeline.send_event(Gst.Event.new_eos())
         # pipeline.set_state(Gst.State.NULL)
-        source.send_event(Gst.Event.new_eos())
+        pipeline.send_event(Gst.Event.new_eos())
 
         # Wait for EOS to be catched up by the bus
-        # msg = bus.timed_pop_filtered(
-        #     Gst.CLOCK_TIME_NONE,
-        #     Gst.MessageType.EOS
-        # )
+        msg = bus.timed_pop_filtered(
+            Gst.CLOCK_TIME_NONE,
+            Gst.MessageType.EOS
+        )
 
-        sleep(5)
+        sleep(10)
     except Exception as e:
         print(e)
     finally:
-        loop.quit()
         pipeline.set_state(Gst.State.NULL)
