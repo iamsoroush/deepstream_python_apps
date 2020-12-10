@@ -25,7 +25,6 @@
 import sys
 sys.path.append('../')
 sys.path.append('/opt/nvidia/deepstream/deepstream/lib')
-import signal
 
 import gi
 
@@ -46,14 +45,8 @@ PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
+
 WRITE_FRAMES = False
-
-
-def signal_handler(signum, frame):
-    print('catched your interrupt!')
-    sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
-    pipeline.set_state(Gst.State.NULL)
-    sys.exit(0)
 
 
 def osd_sink_pad_buffer_probe(pad, info, u_data):
@@ -158,8 +151,6 @@ def osd_sink_pad_buffer_probe(pad, info, u_data):
 
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT, signal_handler)
-
     fps_stream = GETFPS(0)
 
     # Standard GStreamer initialization
@@ -319,7 +310,7 @@ if __name__ == '__main__':
     codeparser.link(container)
     container.link(sink)
 
-    # create an event loop and feed gstreamer bus mesages to it
+    # create an event loop and feed gstreamer's bus messages to it
     loop = GObject.MainLoop()
     bus = pipeline.get_bus()
     bus.add_signal_watch()
@@ -339,11 +330,17 @@ if __name__ == '__main__':
     pipeline.set_state(Gst.State.PLAYING)
     try:
         loop.run()
-    except Exception as e:
+    except KeyboardInterrupt as e:
         sink.get_static_pad('sink').send_event(Gst.Event.new_eos())
+
+        # Wait for EOS to be catched up by the bus
+        msg = bus.timed_pop_filtered(
+            Gst.CLOCK_TIME_NONE,
+            Gst.MessageType.EOS
+        )
+    except Exception as e:
+        print(e)
+    finally:
         pipeline.set_state(Gst.State.NULL)
-        # print(e)
-    # cleanup
-    pipeline.set_state(Gst.State.NULL)
 
 
