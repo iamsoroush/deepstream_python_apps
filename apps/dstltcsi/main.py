@@ -225,6 +225,8 @@ class Pipeline:
         if not caps_nvvidconv_src:
             sys.stderr.write(" Unable to create capsfilter \n")
 
+        nvvidconv_src.set_property('flip‑method', 2)
+
         source.set_property('bufapi-version', True)
         caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string(
             'video/x-raw(memory:NVMM), width={}, height={}, flip-method=2'.format(self.width, self.height)))
