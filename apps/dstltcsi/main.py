@@ -40,7 +40,7 @@ class Pipeline:
         Gst.init(None)
 
         self.pipeline = Gst.Pipeline()
-        if not pipeline:
+        if not self.pipeline:
             sys.stderr.write(" Unable to create Pipeline \n")
 
         self.source, self.nvvidconv_src, self.caps_nvvidconv_src = self._create_source_elements()
