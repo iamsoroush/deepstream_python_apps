@@ -321,10 +321,8 @@ class Pipeline:
 if __name__ == '__main__':
     fps_stream = GETFPS(0)
 
-    out_file_name = '{}.mp4'.format(sys.argv[1])
-
-
-    pipeline = Pipeline(output_file_path=out_file_name)
+    out_file_path = './{}.mp4'.format(sys.argv[1])
+    pipeline = Pipeline(output_file_path=out_file_path)
     try:
         pipeline.start()
     except KeyboardInterrupt as e:
