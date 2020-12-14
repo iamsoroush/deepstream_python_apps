@@ -227,7 +227,7 @@ class Pipeline:
 
         source.set_property('bufapi-version', True)
         caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string(
-            'video/x-raw(memory:NVMM), width={}, height={}, flip-method=0'.format(self.width, self.height)))
+            'video/x-raw(memory:NVMM), width={}, height={}, flip-method=2'.format(self.width, self.height)))
 
         self.pipeline.add(source)
         self.pipeline.add(nvvidconv_src)
