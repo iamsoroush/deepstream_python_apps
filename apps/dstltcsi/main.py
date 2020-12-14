@@ -43,7 +43,7 @@ class Pipeline:
         if not self.pipeline:
             sys.stderr.write(" Unable to create Pipeline \n")
 
-        self.source, self.nvvidconv_src, self.caps_nvvidconv_src = self._create_source_elements()
+        self.source, self.nvvid_rotate, self.caps_nvvid_rotate, self.nvvidconv_src, self.caps_nvvidconv_src = self._create_source_elements()
         self.streammux, self.pgie, self.nvvidconv, self.nvosd = self._create_middle_elements()
         self.queue, self.nvvidconv2, self.capsfilter, self.encoder, self.codeparser,\
         self.container, self.sink = self._create_sink_elements()
@@ -86,7 +86,9 @@ class Pipeline:
         return True
 
     def _link(self):
-        self.source.link(self.nvvidconv_src)
+        self.source.link(self.nvvid_rotate)
+        self.nvvid_rotate.link(self.caps_nvvid_rotate)
+        self.caps_nvvid_rotate.link(self.nvvidconv_src)
         self.nvvidconv_src.link(self.caps_nvvidconv_src)
 
         sinkpad = self.streammux.get_request_pad("sink_0")
@@ -214,9 +216,13 @@ class Pipeline:
         if not source:
             sys.stderr.write(" Unable to create Source \n")
 
+        nvvid_rotate = Gst.ElementFactory.make("nvvidconv", "rotate_src")
+        caps_nvvid_rotate = Gst.ElementFactory.make("capsfilter", "rotate_caps")
+        caps_nvvid_rotate.set_property('caps', Gst.Caps.from_string(
+            'flip-method=2'))
+
         # Converter to scale the image
-        # nvvidconv_src = Gst.ElementFactory.make("nvvideoconvert", "convertor_src")
-        nvvidconv_src = Gst.ElementFactory.make("nvvidconv", "convertor_src")
+        nvvidconv_src = Gst.ElementFactory.make("nvvideoconvert", "convertor_src")
         if not nvvidconv_src:
             sys.stderr.write(" Unable to create nvvidconv_src \n")
 
@@ -227,12 +233,14 @@ class Pipeline:
 
         source.set_property('bufapi-version', True)
         caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string(
-            'video/x-raw(memory:NVMM), width={}, height={}, flip-method=1'.format(self.width, self.height)))
+            'video/x-raw(memory:NVMM), width={}, height={}'.format(self.width, self.height)))
 
         self.pipeline.add(source)
+        self.pipeline.add(nvvid_rotate)
+        self.pipeline.add(caps_nvvid_rotate)
         self.pipeline.add(nvvidconv_src)
         self.pipeline.add(caps_nvvidconv_src)
-        return source, nvvidconv_src, caps_nvvidconv_src
+        return source, nvvid_rotate, caps_nvvid_rotate, nvvidconv_src, caps_nvvidconv_src
 
     def _create_middle_elements(self):
         streammux = Gst.ElementFactory.make("nvstreammux", "Stream-muxer")
