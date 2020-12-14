@@ -215,7 +215,8 @@ class Pipeline:
             sys.stderr.write(" Unable to create Source \n")
 
         # Converter to scale the image
-        nvvidconv_src = Gst.ElementFactory.make("nvvideoconvert", "convertor_src")
+        # nvvidconv_src = Gst.ElementFactory.make("nvvideoconvert", "convertor_src")
+        nvvidconv_src = Gst.ElementFactory.make("nvvidconv", "convertor_src")
         if not nvvidconv_src:
             sys.stderr.write(" Unable to create nvvidconv_src \n")
 
