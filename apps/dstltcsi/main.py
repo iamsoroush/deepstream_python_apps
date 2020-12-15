@@ -426,7 +426,7 @@ class InferTrackPipeline:
 
         # Set properties of tracker
         config = configparser.ConfigParser()
-        config.read('/model/dstest2_tracker_config.txt')
+        config.read('./model/dstest2_tracker_config.txt')
         config.sections()
 
         for key in config['tracker']:
