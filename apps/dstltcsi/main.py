@@ -323,6 +323,7 @@ class Pipeline:
 class InferTrackPipeline:
 
     def __init__(self,
+                 input_vid_path,
                  model_config_path='./model/config_infer_primary_detectnet_v2.txt',
                  labels_path='./model/detectnet_v2_labels.txt',
                  output_file_path='./out.mp4'):
@@ -340,7 +341,8 @@ class InferTrackPipeline:
         if not self.pipeline:
             sys.stderr.write(" Unable to create Pipeline \n")
 
-        self.source, self.nvvidconv_src, self.caps_nvvidconv_src = self._create_source_elements()
+        # self.source, self.nvvidconv_src, self.caps_nvvidconv_src = self._create_source_elements()
+        self.source, self.h264parser, self.decoder = self._create_source_elements(input_vid_path)
         self.streammux, self.pgie, self.tracker, self.nvvidconv, self.nvosd = self._create_middle_elements()
         self.queue, self.nvvidconv2, self.capsfilter, self.encoder, self.codeparser, \
         self.container, self.sink = self._create_sink_elements()
@@ -366,29 +368,55 @@ class InferTrackPipeline:
         self.pipeline.set_state(Gst.State.PLAYING)
         self.loop.run()
 
-    def _create_source_elements(self):
-        source = Gst.ElementFactory.make("nvarguscamerasrc", "src-elem")
+    def _create_source_elements(self, file_path):
+        # source = Gst.ElementFactory.make("nvarguscamerasrc", "src-elem")
+        # if not source:
+        #     sys.stderr.write(" Unable to create Source \n")
+        #
+        # # Converter to scale the image
+        # nvvidconv_src = Gst.ElementFactory.make("nvvideoconvert", "convertor_src")
+        # if not nvvidconv_src:
+        #     sys.stderr.write(" Unable to create nvvidconv_src \n")
+        #
+        # # Caps for NVMM and resolution scaling
+        # caps_nvvidconv_src = Gst.ElementFactory.make("capsfilter", "nvmm_caps")
+        # if not caps_nvvidconv_src:
+        #     sys.stderr.write(" Unable to create capsfilter \n")
+        #
+        # source.set_property('bufapi-version', True)
+        # caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string(
+        #     'video/x-raw(memory:NVMM), width={}, height={}'.format(self.width, self.height)))
+        #
+        # self.pipeline.add(source)
+        # self.pipeline.add(nvvidconv_src)
+        # self.pipeline.add(caps_nvvidconv_src)
+        # return source, nvvidconv_src, caps_nvvidconv_src
+
+        # Source element for reading from the file
+        print("Creating Source \n ")
+        source = Gst.ElementFactory.make("filesrc", "file-source")
         if not source:
             sys.stderr.write(" Unable to create Source \n")
 
-        # Converter to scale the image
-        nvvidconv_src = Gst.ElementFactory.make("nvvideoconvert", "convertor_src")
-        if not nvvidconv_src:
-            sys.stderr.write(" Unable to create nvvidconv_src \n")
+        # Since the data format in the input file is elementary h264 stream,
+        # we need a h264parser
+        print("Creating H264Parser \n")
+        h264parser = Gst.ElementFactory.make("h264parse", "h264-parser")
+        if not h264parser:
+            sys.stderr.write(" Unable to create h264 parser \n")
 
-        # Caps for NVMM and resolution scaling
-        caps_nvvidconv_src = Gst.ElementFactory.make("capsfilter", "nvmm_caps")
-        if not caps_nvvidconv_src:
-            sys.stderr.write(" Unable to create capsfilter \n")
+        # Use nvdec_h264 for hardware accelerated decode on GPU
+        print("Creating Decoder \n")
+        decoder = Gst.ElementFactory.make("nvv4l2decoder", "nvv4l2-decoder")
+        if not decoder:
+            sys.stderr.write(" Unable to create Nvv4l2 Decoder \n")
 
-        source.set_property('bufapi-version', True)
-        caps_nvvidconv_src.set_property('caps', Gst.Caps.from_string(
-            'video/x-raw(memory:NVMM), width={}, height={}'.format(self.width, self.height)))
+        source.set_property('location', file_path)
 
         self.pipeline.add(source)
-        self.pipeline.add(nvvidconv_src)
-        self.pipeline.add(caps_nvvidconv_src)
-        return source, nvvidconv_src, caps_nvvidconv_src
+        self.pipeline.add(h264parser)
+        self.pipeline.add(decoder)
+        return source, h264parser, decoder
 
     def _create_middle_elements(self):
         streammux = Gst.ElementFactory.make("nvstreammux", "Stream-muxer")
@@ -506,17 +534,28 @@ class InferTrackPipeline:
         return queue, nvvidconv2, capsfilter, encoder, codeparser, container, sink
 
     def _link(self):
-        self.source.link(self.nvvidconv_src)
-        self.nvvidconv_src.link(self.caps_nvvidconv_src)
+        self.source.link(self.h264parser)
+        self.h264parser.link(self.decoder)
 
         sinkpad = self.streammux.get_request_pad("sink_0")
         if not sinkpad:
             sys.stderr.write(" Unable to get the sink pad of streammux \n")
-        srcpad = self.caps_nvvidconv_src.get_static_pad("src")
+        srcpad = self.decoder.get_static_pad("src")
         if not srcpad:
             sys.stderr.write(" Unable to get source pad of decoder \n")
-
         srcpad.link(sinkpad)
+
+        # self.source.link(self.nvvidconv_src)
+        # self.nvvidconv_src.link(self.caps_nvvidconv_src)
+        #
+        # sinkpad = self.streammux.get_request_pad("sink_0")
+        # if not sinkpad:
+        #     sys.stderr.write(" Unable to get the sink pad of streammux \n")
+        # srcpad = self.caps_nvvidconv_src.get_static_pad("src")
+        # if not srcpad:
+        #     sys.stderr.write(" Unable to get source pad of decoder \n")
+        #
+        # srcpad.link(sinkpad)
         self.streammux.link(self.pgie)
         self.pgie.link(self.tracker)
         self.tracker.link(self.nvvidconv)
@@ -650,10 +689,11 @@ class InferTrackPipeline:
 if __name__ == '__main__':
     fps_stream = GETFPS(0)
 
-    out_file_name = '{}.mp4'.format(sys.argv[1])
+    out_file_name = '{}.mp4'.format(sys.argv[2])
+    in_file_path = sys.argv[1]
 
     # pipeline = Pipeline(output_file_path=out_file_name)
-    pipeline = InferTrackPipeline(output_file_path=out_file_name)
+    pipeline = InferTrackPipeline(in_file_path, output_file_path=out_file_name)
     try:
         pipeline.start()
     except KeyboardInterrupt as e:
