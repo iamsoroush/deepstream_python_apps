@@ -179,6 +179,8 @@ class Pipeline:
         # capsfilter.set_property("caps", caps)
 
         sink = Gst.ElementFactory.make("appsink", "sink")
+        if not sink:
+            sys.stderr.write(" Unable to create appsink \n")
         sink.set_property("emit-signals", True)
         caps = Gst.caps_from_string(
             "video/x-raw(memory:NVMM), format=RGBA; video/x-bayer, format=(string){rggb,bggr,grbg,gbrg}")
