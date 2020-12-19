@@ -38,7 +38,7 @@ def gst_to_np(sample):
          caps.get_structure(0).get_value('width'),
          3),
         buffer=buf.extract_dup(0, buf.get_size()),
-        dtype=np.uint8)
+        dtype=np.float16)
     return arr
 
 
@@ -48,6 +48,7 @@ def new_buffer(sink, data):
     print('sample: ', sample)
     # buf = sample.get_buffer()
     # print "Timestamp: ", buf.pts
+
     arr = gst_to_np(sample)
     image_arr = arr
     return Gst.FlowReturn.OK
