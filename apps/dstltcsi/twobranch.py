@@ -34,8 +34,8 @@ def gst_to_np(sample):
 
     print('size: ', buf.get_size())
 
-    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buf))
-    print('batch meta: ', batch_meta)
+    # batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buf))
+    # print('batch meta: ', batch_meta)
 
     arr = np.ndarray(
         (caps.get_structure(0).get_value('height'),
