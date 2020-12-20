@@ -24,6 +24,7 @@ PGIE_CLASS_ID_ROADSIGN = 3
 
 def gst_to_np(sample):
     buf = sample.get_buffer()
+    print('buffer: ', buf)
     print('ts: ', buf.pts)
     caps = sample.get_caps()
     print('caps: ', caps)
@@ -31,21 +32,23 @@ def gst_to_np(sample):
     print(caps.get_structure(0).get_value('height'))
     print(caps.get_structure(0).get_value('width'))
 
-    print(buf.get_size())
+    print('size: ', buf.get_size())
+
+    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buf))
+    print('batch meta: ', batch_meta)
 
     arr = np.ndarray(
         (caps.get_structure(0).get_value('height'),
          caps.get_structure(0).get_value('width'),
          3),
         buffer=buf.extract_dup(0, buf.get_size()),
-        dtype=np.float16)
+        dtype=np.int8)
     return arr
 
 
 def new_buffer(sink, data):
     global image_arr
     sample = sink.emit("pull-sample")
-    print('sample: ', sample)
     # buf = sample.get_buffer()
     # print "Timestamp: ", buf.pts
 
@@ -184,7 +187,7 @@ class Pipeline:
             sys.stderr.write(" Unable to create appsink \n")
         sink.set_property("emit-signals", True)
         caps = Gst.caps_from_string(
-            "video/x-raw(memory:NVMM), format=RGBA; video/x-bayer, format=(string){rggb,bggr,grbg,gbrg}")
+            "video/x-raw, format=RGBA; video/x-bayer, format=(string){rggb,bggr,grbg,gbrg}")
         sink.set_property("caps", caps)
         sink.connect("new-sample", new_buffer, sink)
 
