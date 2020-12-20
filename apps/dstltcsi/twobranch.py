@@ -9,6 +9,8 @@ import numpy as np
 import cv2
 
 gi.require_version('Gst', '1.0')
+gi.require_version('GstVideo', '1.0')
+
 from gi.repository import GObject, Gst, GstVideo
 from common.bus_call import bus_call
 from common.FPS import GETFPS
@@ -27,7 +29,7 @@ PGIE_CLASS_ID_ROADSIGN = 3
 def gst_to_np(sample):
     buffer = sample.get_buffer()
     # print('buffer: ', buf)
-    print(f'pts: {buffer.pts / 1e9} -- dts: {buffer.dts / 1e9} -- offset: {buffer.offset}')
+    print(f'pts: {buffer.pts / 1e9} -- dts: {buffer.dts / 1e9} -- offset: {buffer.offset} -- duration: {buffer.duration / 1e9}')
     caps = sample.get_caps()
     print(caps.get_structure(0).get_value('format'))
     print(caps.get_structure(0).get_value('height'))
@@ -35,7 +37,8 @@ def gst_to_np(sample):
     # print('n_meta: ', buffer.get_n_meta())
 
     batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buffer))
-    print(batch_meta)
+    l_frame = batch_meta.frame_meta_list
+    print(l_frame)
 
     caps_format = caps.get_structure(0)
     video_format = GstVideo.VideoFormat.from_string(
@@ -188,14 +191,15 @@ class Pipeline:
         if not sink:
             sys.stderr.write(" Unable to create appsink \n")
         sink.set_property("emit-signals", True)
-        caps = Gst.caps_from_string(
-            # "video/x-raw, format=RGBA; video/x-bayer, format=(string){rggb,bggr,grbg,gbrg}")
-            "video/x-raw, format=RGBA")
+        caps = Gst.caps_from_string("video/x-raw, format=RGBA")
         sink.set_property("caps", caps)
         sink.set_property("drop", True)
-        sink.set_property("max_buffers", 3)
-        sink.set_property("wait-on-eos", True)
+        sink.set_property("max_buffers", 1)
+        sink.set_property("sync", False)
+        sink.set_property("wait-on-eos", False)
         sink.connect("new-sample", new_buffer, sink)
+
+
 
         self.pipeline.add(nvvidconv)
         self.pipeline.add(capsfilter)
