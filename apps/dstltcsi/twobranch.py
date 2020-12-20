@@ -31,6 +31,7 @@ def gst_to_np(sample):
     print(caps.get_structure(0).get_value('format'))
     print(caps.get_structure(0).get_value('height'))
     print(caps.get_structure(0).get_value('width'))
+    print('n_meta: ', buf.get_n_meta())
 
     # batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buf))
     # print('batch meta: ', batch_meta)
@@ -185,7 +186,7 @@ class Pipeline:
             "video/x-raw, format=RGBA")
         sink.set_property("caps", caps)
         # sink.set_property("drop", True)
-        # sink.set_property("max_buffers", 1)
+        sink.set_property("max_buffers", 1)
         sink.connect("new-sample", new_buffer, sink)
 
         self.pipeline.add(nvvidconv)
