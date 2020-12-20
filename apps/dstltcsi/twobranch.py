@@ -9,11 +9,13 @@ import numpy as np
 import cv2
 
 gi.require_version('Gst', '1.0')
-from gi.repository import GObject, Gst
+from gi.repository import GObject, Gst, GstVideo
 from common.bus_call import bus_call
 from common.FPS import GETFPS
 
 import pyds
+
+from .gstutils import get_num_channels, get_np_dtype
 
 
 PGIE_CLASS_ID_VEHICLE = 0
@@ -23,26 +25,41 @@ PGIE_CLASS_ID_ROADSIGN = 3
 
 
 def gst_to_np(sample):
-    buf = sample.get_buffer()
+    buffer = sample.get_buffer()
     # print('buffer: ', buf)
-    print('ts: ', buf.pts / 1e9)
+    print(f'pts: {buffer.pts / 1e9} -- dts: {buffer.dts / 1e9} -- offset: {buffer.offset}')
     caps = sample.get_caps()
-    # print('caps: ', caps)
     print(caps.get_structure(0).get_value('format'))
     print(caps.get_structure(0).get_value('height'))
     print(caps.get_structure(0).get_value('width'))
-    print('n_meta: ', buf.get_n_meta())
+    # print('n_meta: ', buffer.get_n_meta())
+
+    caps_format = caps.get_structure(0)
+    print(caps_format)
+
+    video_format = GstVideo.VideoFormat.from_string(
+        caps_format.get_value('format'))
+
+    w, h = caps_format.get_value('width'), caps_format.get_value('height')
+    c = get_num_channels(video_format)
+
+    buffer_size = buffer.get_size()
+    shape = (h, w, c) if (h * w * c == buffer_size) else buffer_size
+    array = np.ndarray(shape=shape, buffer=buffer.extract_dup(0, buffer_size),
+                       dtype=get_np_dtype(video_format))
+
+    return np.squeeze(array)  # remove single dimension if exists
 
     # batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buf))
     # print('batch meta: ', batch_meta)
 
-    arr = np.ndarray(
-        (caps.get_structure(0).get_value('height'),
-         caps.get_structure(0).get_value('width'),
-         3),
-        buffer=buf.extract_dup(0, buf.get_size()),
-        dtype=np.int8)
-    return arr, buf.pts
+    # arr = np.ndarray(
+    #     (caps.get_structure(0).get_value('height'),
+    #      caps.get_structure(0).get_value('width'),
+    #      3),
+    #     buffer=buffer.extract_dup(0, buffer.get_size()),
+    #     dtype=np.int8)
+    # return arr, buf.pts
 
 
 def new_buffer(sink, data):
@@ -185,7 +202,7 @@ class Pipeline:
             # "video/x-raw, format=RGBA; video/x-bayer, format=(string){rggb,bggr,grbg,gbrg}")
             "video/x-raw, format=RGBA")
         sink.set_property("caps", caps)
-        # sink.set_property("drop", True)
+        sink.set_property("drop", True)
         sink.set_property("max_buffers", 1)
         sink.connect("new-sample", new_buffer, sink)
 
