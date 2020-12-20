@@ -184,7 +184,7 @@ class Pipeline:
             # "video/x-raw, format=RGBA; video/x-bayer, format=(string){rggb,bggr,grbg,gbrg}")
             "video/x-raw, format=RGBA")
         sink.set_property("caps", caps)
-        sink.set_property("drop", True)
+        # sink.set_property("drop", True)
         sink.set_property("max_buffers", 1)
         sink.connect("new-sample", new_buffer, sink)
 
