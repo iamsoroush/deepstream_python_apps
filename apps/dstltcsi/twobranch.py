@@ -49,6 +49,7 @@ def gst_to_np(sample):
 def new_buffer(sink, data):
     global image_arr
     sample = sink.emit("pull-sample")
+    print(data)
     # buf = sample.get_buffer()
     # print "Timestamp: ", buf.pts
 
