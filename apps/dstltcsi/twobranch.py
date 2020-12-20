@@ -57,7 +57,7 @@ def new_buffer(sink, data):
     sample = sink.emit("pull-sample")
 
     arr, pts = gst_to_np(sample)
-    cv2.imwrite(f'{pts}.jpg', cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
+    cv2.imwrite(f'{pts}.jpg', cv2.cvtColor(arr, cv2.COLOR_RGB2BGR))
 
     sleep(2)
     return Gst.FlowReturn.OK
