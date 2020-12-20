@@ -24,15 +24,13 @@ PGIE_CLASS_ID_ROADSIGN = 3
 
 def gst_to_np(sample):
     buf = sample.get_buffer()
-    print('buffer: ', buf)
-    print('ts: ', buf.pts)
+    # print('buffer: ', buf)
+    print('ts: ', buf.pts / 1e9)
     caps = sample.get_caps()
-    print('caps: ', caps)
+    # print('caps: ', caps)
     print(caps.get_structure(0).get_value('format'))
     print(caps.get_structure(0).get_value('height'))
     print(caps.get_structure(0).get_value('width'))
-
-    print('size: ', buf.get_size())
 
     # batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buf))
     # print('batch meta: ', batch_meta)
@@ -43,18 +41,17 @@ def gst_to_np(sample):
          3),
         buffer=buf.extract_dup(0, buf.get_size()),
         dtype=np.int8)
-    return arr
+    return arr, buf.pts
 
 
 def new_buffer(sink, data):
     global image_arr
     sample = sink.emit("pull-sample")
-    print(data)
-    # buf = sample.get_buffer()
-    # print "Timestamp: ", buf.pts
 
-    arr = gst_to_np(sample)
-    image_arr = arr
+    arr, pts = gst_to_np(sample)
+    cv2.imwrite(f'{}.jpg'.format(pts), arr)
+
+    sleep(2)
     return Gst.FlowReturn.OK
 
 
@@ -187,6 +184,8 @@ class Pipeline:
             # "video/x-raw, format=RGBA; video/x-bayer, format=(string){rggb,bggr,grbg,gbrg}")
             "video/x-raw, format=RGBA")
         sink.set_property("caps", caps)
+        sink.set_property("drop", True)
+        sink.set_property("max_buffers", 1)
         sink.connect("new-sample", new_buffer, sink)
 
         self.pipeline.add(nvvidconv)
