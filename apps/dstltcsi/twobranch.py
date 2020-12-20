@@ -15,7 +15,7 @@ from common.FPS import GETFPS
 
 import pyds
 
-from .gstutils import get_num_channels, get_np_dtype
+from gstutils import get_num_channels, get_np_dtype
 
 
 PGIE_CLASS_ID_VEHICLE = 0
