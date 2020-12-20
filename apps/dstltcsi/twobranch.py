@@ -188,7 +188,8 @@ class Pipeline:
             sys.stderr.write(" Unable to create appsink \n")
         sink.set_property("emit-signals", True)
         caps = Gst.caps_from_string(
-            "video/x-raw, format=RGBA; video/x-bayer, format=(string){rggb,bggr,grbg,gbrg}")
+            # "video/x-raw, format=RGBA; video/x-bayer, format=(string){rggb,bggr,grbg,gbrg}")
+            "video/x-raw, format=RGBA")
         sink.set_property("caps", caps)
         sink.connect("new-sample", new_buffer, sink)
 
