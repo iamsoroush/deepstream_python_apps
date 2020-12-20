@@ -34,9 +34,10 @@ def gst_to_np(sample):
     print(caps.get_structure(0).get_value('width'))
     # print('n_meta: ', buffer.get_n_meta())
 
-    caps_format = caps.get_structure(0)
-    print(caps_format)
+    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buffer))
+    print(batch_meta)
 
+    caps_format = caps.get_structure(0)
     video_format = GstVideo.VideoFormat.from_string(
         caps_format.get_value('format'))
 
@@ -48,18 +49,7 @@ def gst_to_np(sample):
     array = np.ndarray(shape=shape, buffer=buffer.extract_dup(0, buffer_size),
                        dtype=get_np_dtype(video_format))
 
-    return np.squeeze(array), buffer.pts  # remove single dimension if exists
-
-    # batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buf))
-    # print('batch meta: ', batch_meta)
-
-    # arr = np.ndarray(
-    #     (caps.get_structure(0).get_value('height'),
-    #      caps.get_structure(0).get_value('width'),
-    #      3),
-    #     buffer=buffer.extract_dup(0, buffer.get_size()),
-    #     dtype=np.int8)
-    # return arr, buf.pts
+    return np.squeeze(array), buffer.pts
 
 
 def new_buffer(sink, data):
@@ -67,7 +57,7 @@ def new_buffer(sink, data):
     sample = sink.emit("pull-sample")
 
     arr, pts = gst_to_np(sample)
-    cv2.imwrite(f'{pts}.jpg', arr)
+    cv2.imwrite(f'{pts}.jpg', cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
 
     sleep(2)
     return Gst.FlowReturn.OK
@@ -203,7 +193,8 @@ class Pipeline:
             "video/x-raw, format=RGBA")
         sink.set_property("caps", caps)
         sink.set_property("drop", True)
-        sink.set_property("max_buffers", 1)
+        sink.set_property("max_buffers", 3)
+        sink.set_property("wait-on-eos", True)
         sink.connect("new-sample", new_buffer, sink)
 
         self.pipeline.add(nvvidconv)
