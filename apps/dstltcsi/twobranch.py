@@ -80,18 +80,18 @@ class Pipeline:
             sys.stderr.write(" Unable to create Pipeline \n")
 
         self.source, self.h264parser, self.decoder = self._create_source_elements(input_file_path)
-        self.streammux, self.pgie, self.nvvidconv, self.nvosd = self._create_middle_elements()
-        self.sink = self._create_sink_elements()
+        self.streammux, self.pgie = self._create_middle_elements()
+        self.nvvidconv, self.capsfilter, self.sink = self._create_sink_elements()
 
         # Link the elements
         print("Linking elements in the Pipeline \n")
         self._link()
 
-        osdsinkpad = self.nvosd.get_static_pad("sink")
-        if not osdsinkpad:
-            sys.stderr.write(" Unable to get sink pad of nvosd \n")
-
-        osdsinkpad.add_probe(Gst.PadProbeType.BUFFER, self.osd_sink_pad_buffer_probe, 0)
+        # osdsinkpad = self.nvosd.get_static_pad("sink")
+        # if not osdsinkpad:
+        #     sys.stderr.write(" Unable to get sink pad of nvosd \n")
+        #
+        # osdsinkpad.add_probe(Gst.PadProbeType.BUFFER, self.osd_sink_pad_buffer_probe, 0)
 
         self.loop = GObject.MainLoop()
         self.bus = self.pipeline.get_bus()
@@ -142,17 +142,17 @@ class Pipeline:
         if not pgie:
             sys.stderr.write(" Unable to create pgie \n")
 
-        # Use convertor to convert from NV12 to RGBA as required by nvosd
-        nvvidconv = Gst.ElementFactory.make("nvvideoconvert", "convertor")
-        if not nvvidconv:
-            sys.stderr.write(" Unable to create nvvidconv \n")
+        # # Use convertor to convert from NV12 to RGBA as required by nvosd
+        # nvvidconv = Gst.ElementFactory.make("nvvideoconvert", "convertor")
+        # if not nvvidconv:
+        #     sys.stderr.write(" Unable to create nvvidconv \n")
 
         # Create OSD to draw on the converted RGBA buffer
-        nvosd = Gst.ElementFactory.make("nvdsosd", "onscreendisplay")
-        if not nvosd:
-            sys.stderr.write(" Unable to create nvosd \n")
-
-        nvosd.set_property('display-clock', 1)  # here: https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvdsosd.html
+        # nvosd = Gst.ElementFactory.make("nvdsosd", "onscreendisplay")
+        # if not nvosd:
+        #     sys.stderr.write(" Unable to create nvosd \n")
+        #
+        # nvosd.set_property('display-clock', 1)  # here: https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvdsosd.html
 
         streammux.set_property('width', self.width)
         streammux.set_property('height', self.height)
@@ -162,22 +162,22 @@ class Pipeline:
 
         self.pipeline.add(streammux)
         self.pipeline.add(pgie)
-        self.pipeline.add(nvvidconv)
-        self.pipeline.add(nvosd)
+        # self.pipeline.add(nvvidconv)
+        # self.pipeline.add(nvosd)
 
-        return streammux, pgie, nvvidconv, nvosd
+        return streammux, pgie
 
     def _create_sink_elements(self):
-        # nvvidconv2 = Gst.ElementFactory.make("nvvideoconvert", "convertor2")
-        # if not nvvidconv2:
-        #     sys.stderr.write(" Unable to create nvvidconv2 \n")
-        #
-        # capsfilter = Gst.ElementFactory.make("capsfilter", "capsfilter")
-        # if not capsfilter:
-        #     sys.stderr.write(" Unable to create capsfilter \n")
+        nvvidconv = Gst.ElementFactory.make("nvvideoconvert", "convertor appsink")
+        if not nvvidconv:
+            sys.stderr.write(" Unable to create nvvidconv2 \n")
 
-        # caps = Gst.Caps.from_string("video/x-raw(memory:NVMM), format=RGBA")
-        # capsfilter.set_property("caps", caps)
+        capsfilter = Gst.ElementFactory.make("capsfilter", "capsfilter")
+        if not capsfilter:
+            sys.stderr.write(" Unable to create capsfilter \n")
+
+        caps = Gst.Caps.from_string("video/x-raw, format=RGBA")
+        capsfilter.set_property("caps", caps)
 
         sink = Gst.ElementFactory.make("appsink", "sink")
         if not sink:
@@ -189,59 +189,11 @@ class Pipeline:
         sink.set_property("caps", caps)
         sink.connect("new-sample", new_buffer, sink)
 
-        # self.pipeline.add(nvvidconv2)
-        # self.pipeline.add(capsfilter)
+        self.pipeline.add(nvvidconv)
+        self.pipeline.add(capsfilter)
         self.pipeline.add(sink)
 
-        return sink
-
-    # def _create_sink_elements(self):
-    #     queue = Gst.ElementFactory.make("queue", "queue")
-    #     if not queue:
-    #         sys.stderr.write(" Unable to create queue \n")
-    #
-    #     nvvidconv2 = Gst.ElementFactory.make("nvvideoconvert", "convertor2")
-    #     if not nvvidconv2:
-    #         sys.stderr.write(" Unable to create nvvidconv2 \n")
-    #
-    #     capsfilter = Gst.ElementFactory.make("capsfilter", "capsfilter")
-    #     if not capsfilter:
-    #         sys.stderr.write(" Unable to create capsfilter \n")
-    #
-    #     caps = Gst.Caps.from_string("video/x-raw, format=I420")
-    #     capsfilter.set_property("caps", caps)
-    #
-    #     encoder = Gst.ElementFactory.make("avenc_mpeg4", "encoder")
-    #     if not encoder:
-    #         sys.stderr.write(" Unable to create encoder \n")
-    #
-    #     encoder.set_property("bitrate", 2000000)
-    #
-    #     codeparser = Gst.ElementFactory.make("mpeg4videoparse", "mpeg4-parser")
-    #     if not codeparser:
-    #         sys.stderr.write(" Unable to create code parser \n")
-    #
-    #     container = Gst.ElementFactory.make("qtmux", "qtmux")
-    #     if not container:
-    #         sys.stderr.write(" Unable to create code parser \n")
-    #
-    #     sink = Gst.ElementFactory.make("filesink", "filesink")
-    #     if not sink:
-    #         sys.stderr.write(" Unable to create file sink \n")
-    #
-    #     sink.set_property("location", self.output_file_path)
-    #     sink.set_property("sync", 1)
-    #     sink.set_property("async", 0)
-    #
-    #     self.pipeline.add(queue)
-    #     self.pipeline.add(nvvidconv2)
-    #     self.pipeline.add(capsfilter)
-    #     self.pipeline.add(encoder)
-    #     self.pipeline.add(codeparser)
-    #     self.pipeline.add(container)
-    #     self.pipeline.add(sink)
-    #
-    #     return queue, nvvidconv2, capsfilter, encoder, codeparser, container, sink
+        return nvvidconv, capsfilter, sink
 
     def _link(self):
         self.source.link(self.h264parser)
@@ -257,9 +209,8 @@ class Pipeline:
         srcpad.link(sinkpad)
         self.streammux.link(self.pgie)
         self.pgie.link(self.nvvidconv)
-        self.nvvidconv.link(self.nvosd)
-
-        self.nvosd.link(self.sink)
+        self.nvvidconv.link(self.capsfilter)
+        self.capsfilter.link(self.sink)
 
     @staticmethod
     def _bus_call(bus, message, loop):
