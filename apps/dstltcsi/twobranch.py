@@ -48,7 +48,7 @@ def gst_to_np(sample):
     array = np.ndarray(shape=shape, buffer=buffer.extract_dup(0, buffer_size),
                        dtype=get_np_dtype(video_format))
 
-    return np.squeeze(array)  # remove single dimension if exists
+    return np.squeeze(array), buffer.pts  # remove single dimension if exists
 
     # batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buf))
     # print('batch meta: ', batch_meta)
