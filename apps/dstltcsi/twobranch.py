@@ -193,9 +193,9 @@ class Pipeline:
         sink.set_property("emit-signals", True)
         caps = Gst.caps_from_string("video/x-raw, format=RGBA")
         sink.set_property("caps", caps)
-        sink.set_property("drop", True)
-        sink.set_property("max_buffers", 1)
-        sink.set_property("sync", False)
+        # sink.set_property("drop", True)
+        # sink.set_property("max_buffers", 1)
+        # sink.set_property("sync", False)
         sink.set_property("wait-on-eos", False)
         sink.connect("new-sample", new_buffer, sink)
 
