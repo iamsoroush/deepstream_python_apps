@@ -364,18 +364,28 @@ class PipelineCamera:
             sys.stderr.write(" Unable to create Pipeline \n")
 
         self.source, self.nvvidconv_src, self.caps_nvvidconv_src = self._create_source_elements()
-        self.streammux, self.pgie = self._create_middle_elements()
-        self.nvvidconv, self.capsfilter, self.sink = self._create_sink_elements()
+        self.tee, self.queue_od, self.queue_seg = self._create_branching_elements()
+        self.streammux, self.pgie, self.nvvidconvosd, self.nvosd = self._create_middle_elements()
+        self.nvvidconv, self.capsfilter, self.sink, self.fake_sink = self._create_sink_elements()
 
         # Link the elements
         print("Linking elements in the Pipeline \n")
         self._link()
 
-        # osdsinkpad = self.nvosd.get_static_pad("sink")
-        # if not osdsinkpad:
-        #     sys.stderr.write(" Unable to get sink pad of nvosd \n")
-        #
-        # osdsinkpad.add_probe(Gst.PadProbeType.BUFFER, self.osd_sink_pad_buffer_probe, 0)
+        od_sink_pad = self.queue_od.get_static_pad("sink")
+        seg_sink_pad = self.queue_seg.get_static_pad("sink")
+        tee_od_pad = self.tee.get_request_pad('src_%u')
+        tee_seg_pad = self.tee.get_request_pad("src_%u")
+        if not tee_od_pad or not tee_seg_pad:
+            sys.stderr.write("Unable to get request pads\n")
+        tee_od_pad.link(od_sink_pad)
+        tee_seg_pad.link(seg_sink_pad)
+
+        osdsinkpad = self.nvosd.get_static_pad("sink")
+        if not osdsinkpad:
+            sys.stderr.write(" Unable to get sink pad of nvosd \n")
+
+        osdsinkpad.add_probe(Gst.PadProbeType.BUFFER, self.osd_sink_pad_buffer_probe, 0)
 
         self.loop = GObject.MainLoop()
         self.bus = self.pipeline.get_bus()
@@ -423,17 +433,17 @@ class PipelineCamera:
         if not pgie:
             sys.stderr.write(" Unable to create pgie \n")
 
-        # # Use convertor to convert from NV12 to RGBA as required by nvosd
-        # nvvidconv = Gst.ElementFactory.make("nvvideoconvert", "convertor")
-        # if not nvvidconv:
-        #     sys.stderr.write(" Unable to create nvvidconv \n")
+        # Use convertor to convert from NV12 to RGBA as required by nvosd
+        nvvidconvosd = Gst.ElementFactory.make("nvvideoconvert", "convertor")
+        if not nvvidconvosd:
+            sys.stderr.write(" Unable to create nvvidconv \n")
 
         # Create OSD to draw on the converted RGBA buffer
-        # nvosd = Gst.ElementFactory.make("nvdsosd", "onscreendisplay")
-        # if not nvosd:
-        #     sys.stderr.write(" Unable to create nvosd \n")
-        #
-        # nvosd.set_property('display-clock', 1)  # here: https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvdsosd.html
+        nvosd = Gst.ElementFactory.make("nvdsosd", "onscreendisplay")
+        if not nvosd:
+            sys.stderr.write(" Unable to create nvosd \n")
+
+        nvosd.set_property('display-clock', 1)  # here: https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_plugin_gst-nvdsosd.html
 
         streammux.set_property('width', self.width)
         streammux.set_property('height', self.height)
@@ -443,10 +453,10 @@ class PipelineCamera:
 
         self.pipeline.add(streammux)
         self.pipeline.add(pgie)
-        # self.pipeline.add(nvvidconv)
-        # self.pipeline.add(nvosd)
+        self.pipeline.add(nvvidconvosd)
+        self.pipeline.add(nvosd)
 
-        return streammux, pgie
+        return streammux, pgie, nvvidconvosd, nvosd
 
     def _create_sink_elements(self):
         nvvidconv = Gst.ElementFactory.make("nvvideoconvert", "convertor appsink")
@@ -472,14 +482,29 @@ class PipelineCamera:
         sink.set_property("wait-on-eos", False)
         sink.connect("new-sample", new_buffer, sink)
 
+        fakesink = Gst.ElementFactory.make("fakesink", "fakesink")
+
         self.pipeline.add(nvvidconv)
         self.pipeline.add(capsfilter)
         self.pipeline.add(sink)
+        self.pipeline.add(fakesink)
 
-        return nvvidconv, capsfilter, sink
+        return nvvidconv, capsfilter, sink, fakesink
+
+    def _create_branching_elements(self):
+        tee = Gst.ElementFactory.make("tee", "tee")
+        queue_od = Gst.ElementFactory.make("queue", "object detection queue")
+        queue_seg = Gst.ElementFactory.make("queue", "segmentation queue")
+
+        self.pipeline.add(tee)
+        self.pipeline.add(queue_od)
+        self.pipeline.add(queue_seg)
+
+        return tee, queue_od, queue_seg
 
     def _link(self):
-        self.source.link(self.nvvidconv_src)
+        self.source.link(self.tee)
+        self.queue_od.link(self.nvvidconv_src)
         self.nvvidconv_src.link(self.caps_nvvidconv_src)
 
         sinkpad = self.streammux.get_request_pad("sink_0")
@@ -491,7 +516,14 @@ class PipelineCamera:
 
         srcpad.link(sinkpad)
         self.streammux.link(self.pgie)
-        self.pgie.link(self.nvvidconv)
+        self.pgie.link(self.nvvidconvosd)
+        self.nvvidconvosd.link(self.nvosd)
+        self.nvosd.link(self.fake_sink)
+        # self.pgie.link(self.nvvidconv)
+        # self.nvvidconv.link(self.capsfilter)
+        # self.capsfilter.link(self.sink)
+
+        self.queue_seg.link(self.nvvidconv)
         self.nvvidconv.link(self.capsfilter)
         self.capsfilter.link(self.sink)
 
@@ -639,4 +671,5 @@ if __name__ == '__main__':
     except Exception as e:
         print(e)
     finally:
+        pyds.unset_callback_funcs()
         pipeline.pipeline.set_state(Gst.State.NULL)
