@@ -375,10 +375,10 @@ class PipelineCamera:
 
         od_sink_pad = self.queue_od.get_static_pad("sink")
         seg_sink_pad = self.queue_seg.get_static_pad("sink")
-        # tee_od_pad = self.tee.get_request_pad('src_%u')
-        # tee_seg_pad = self.tee.get_request_pad("src_%u")
-        tee_od_pad = self.tee.get_request_pad('vid_src')
-        tee_seg_pad = self.tee.get_request_pad('vid_src')
+        tee_od_pad = self.tee.get_request_pad('src_%u')
+        tee_seg_pad = self.tee.get_request_pad("src_%u")
+        # tee_od_pad = self.tee.get_request_pad('vid_src')
+        # tee_seg_pad = self.tee.get_request_pad('vid_src')
         if not tee_od_pad or not tee_seg_pad:
             sys.stderr.write("Unable to get request pads\n")
         tee_od_pad.link(od_sink_pad)
@@ -495,7 +495,7 @@ class PipelineCamera:
         return nvvidconv, capsfilter, sink, fakesink
 
     def _create_branching_elements(self):
-        tee = Gst.ElementFactory.make("tee", "tee")
+        tee = Gst.ElementFactory.make("nvtee", "tee")
         queue_od = Gst.ElementFactory.make("queue", "object detection queue")
         queue_seg = Gst.ElementFactory.make("queue", "segmentation queue")
 
