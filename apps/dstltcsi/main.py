@@ -43,7 +43,7 @@ class Pipeline:
         if not self.pipeline:
             sys.stderr.write(" Unable to create Pipeline \n")
 
-        self.source, self.nvvid_rotate, self.caps_nvvid_rotate, self.nvvidconv_src, self.caps_nvvidconv_src = self._create_source_elements()
+        self.source, self.nvvidconv_src, self.caps_nvvidconv_src = self._create_source_elements()
         self.streammux, self.pgie, self.nvvidconv, self.nvosd = self._create_middle_elements()
         self.queue, self.nvvidconv2, self.capsfilter, self.encoder, self.codeparser,\
         self.container, self.sink = self._create_sink_elements()
@@ -692,8 +692,8 @@ if __name__ == '__main__':
     out_file_name = '{}.mp4'.format(sys.argv[2])
     in_file_path = sys.argv[1]
 
-    # pipeline = Pipeline(output_file_path=out_file_name)
-    pipeline = InferTrackPipeline(in_file_path, output_file_path=out_file_name)
+    pipeline = Pipeline(output_file_path=out_file_name)
+    # pipeline = InferTrackPipeline(in_file_path, output_file_path=out_file_name)
     try:
         pipeline.start()
     except KeyboardInterrupt as e:
