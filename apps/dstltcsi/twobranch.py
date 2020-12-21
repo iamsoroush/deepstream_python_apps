@@ -388,7 +388,7 @@ class PipelineCamera:
         self.pipeline.set_state(Gst.State.PLAYING)
         self.loop.run()
 
-    def _create_source_elements(self, file_path):
+    def _create_source_elements(self):
         source = Gst.ElementFactory.make("nvarguscamerasrc", "src-elem")
         if not source:
             sys.stderr.write(" Unable to create Source \n")
