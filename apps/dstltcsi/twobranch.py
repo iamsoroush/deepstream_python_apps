@@ -3,10 +3,10 @@ sys.path.append('../')
 sys.path.append('/opt/nvidia/deepstream/deepstream/lib')
 from time import sleep
 
-import gi
-
 import numpy as np
 import cv2
+
+import gi
 
 gi.require_version('Gst', '1.0')
 gi.require_version('GstVideo', '1.0')
@@ -466,13 +466,11 @@ class PipelineCamera:
         sink.set_property("emit-signals", True)
         caps = Gst.caps_from_string("video/x-raw, format=RGBA")
         sink.set_property("caps", caps)
-        sink.set_property("drop", True)
-        sink.set_property("max_buffers", 3)
+        # sink.set_property("drop", True)
+        # sink.set_property("max_buffers", 3)
         # sink.set_property("sync", False)
         sink.set_property("wait-on-eos", False)
         sink.connect("new-sample", new_buffer, sink)
-
-
 
         self.pipeline.add(nvvidconv)
         self.pipeline.add(capsfilter)
