@@ -689,8 +689,8 @@ class InferTrackPipeline:
 if __name__ == '__main__':
     fps_stream = GETFPS(0)
 
-    out_file_name = '{}.mp4'.format(sys.argv[2])
-    in_file_path = sys.argv[1]
+    out_file_name = '{}.mp4'.format(sys.argv[1])
+    in_file_path = sys.argv[2]
 
     pipeline = Pipeline(output_file_path=out_file_name)
     # pipeline = InferTrackPipeline(in_file_path, output_file_path=out_file_name)
