@@ -503,14 +503,17 @@ class PipelineCamera:
         return tee, queue_od, queue_seg
 
     def _link(self):
-        self.source.link(self.tee)
-        self.queue_od.link(self.nvvidconv_src)
+        # self.source.link(self.tee)
+        # self.queue_od.link(self.nvvidconv_src)
+        self.source.link(self.nvvidconv_src)
         self.nvvidconv_src.link(self.caps_nvvidconv_src)
+        self.caps_nvvidconv_src.link(self.tee)
 
         sinkpad = self.streammux.get_request_pad("sink_0")
         if not sinkpad:
             sys.stderr.write(" Unable to get the sink pad of streammux \n")
-        srcpad = self.caps_nvvidconv_src.get_static_pad("src")
+        # srcpad = self.caps_nvvidconv_src.get_static_pad("src")
+        srcpad = self.queue_od.get_static_pad("src")
         if not srcpad:
             sys.stderr.write(" Unable to get source pad of decoder \n")
 
@@ -523,9 +526,10 @@ class PipelineCamera:
         # self.nvvidconv.link(self.capsfilter)
         # self.capsfilter.link(self.sink)
 
-        self.queue_seg.link(self.nvvidconv)
-        self.nvvidconv.link(self.capsfilter)
-        self.capsfilter.link(self.sink)
+        # self.queue_seg.link(self.nvvidconv)
+        # self.nvvidconv.link(self.capsfilter)
+        # self.capsfilter.link(self.sink)
+        self.queue_seg.link(self.sink)
 
     @staticmethod
     def _bus_call(bus, message, loop):
@@ -577,6 +581,8 @@ class PipelineCamera:
             frame_number = frame_meta.frame_num
             num_rects = frame_meta.num_obj_meta
             l_obj = frame_meta.obj_meta_list
+            pts = frame_meta.buf_pts
+            print(f'from osd, pts: {pts}')
             while l_obj is not None:
                 try:
                     # Casting l_obj.data to pyds.NvDsObjectMeta
