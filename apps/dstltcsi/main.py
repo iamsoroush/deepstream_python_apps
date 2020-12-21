@@ -178,9 +178,7 @@ class Pipeline:
         return queue, nvvidconv2, capsfilter, encoder, codeparser, container, sink
 
     def _link(self):
-        self.source.link(self.nvvid_rotate)
-        self.nvvid_rotate.link(self.caps_nvvid_rotate)
-        self.caps_nvvid_rotate.link(self.nvvidconv_src)
+        self.source.link(self.nvvidconv_src)
         self.nvvidconv_src.link(self.caps_nvvidconv_src)
 
         sinkpad = self.streammux.get_request_pad("sink_0")
