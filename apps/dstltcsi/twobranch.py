@@ -495,7 +495,7 @@ class PipelineCamera:
         return nvvidconv, capsfilter, sink, fakesink
 
     def _create_branching_elements(self):
-        tee = Gst.ElementFactory.make("nvtee", "tee")
+        tee = Gst.ElementFactory.make("tee", "tee")
         queue_od = Gst.ElementFactory.make("queue", "object detection queue")
         queue_seg = Gst.ElementFactory.make("queue", "segmentation queue")
 
