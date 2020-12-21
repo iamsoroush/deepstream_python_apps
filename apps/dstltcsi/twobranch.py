@@ -45,6 +45,7 @@ def gst_to_np(sample):
     # print(f'frame number: {frame_number}')
     # print(f'frame pts (seconds): {pts / 1e9}')
     # print(f'ntp timestamp (seconds): {ntp_ts / 1e9}')
+    print(f'from appsink, pts: {buffer.pts / 1e9}')
 
     caps_format = caps.get_structure(0)
     video_format = GstVideo.VideoFormat.from_string(
@@ -582,7 +583,7 @@ class PipelineCamera:
             num_rects = frame_meta.num_obj_meta
             l_obj = frame_meta.obj_meta_list
             pts = frame_meta.buf_pts
-            print(f'from osd, pts: {pts}')
+            print(f'from osd, pts: {pts / 1e9}')
             while l_obj is not None:
                 try:
                     # Casting l_obj.data to pyds.NvDsObjectMeta
