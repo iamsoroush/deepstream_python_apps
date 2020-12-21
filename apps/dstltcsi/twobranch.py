@@ -36,15 +36,15 @@ def gst_to_np(sample):
     print(caps.get_structure(0).get_value('width'))
     # print('n_meta: ', buffer.get_n_meta())
 
-    batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buffer))
-    l_frame = batch_meta.frame_meta_list
-    frame_meta = pyds.NvDsFrameMeta.cast(l_frame.data)
-    frame_number = frame_meta.frame_num
-    pts = frame_meta.buf_pts
-    ntp_ts = frame_meta.ntp_timestamp
-    print(f'frame number: {frame_number}')
-    print(f'frame pts (seconds): {pts / 1e9}')
-    print(f'ntp timestamp (seconds): {ntp_ts / 1e9}')
+    # batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buffer))
+    # l_frame = batch_meta.frame_meta_list
+    # frame_meta = pyds.NvDsFrameMeta.cast(l_frame.data)
+    # frame_number = frame_meta.frame_num
+    # pts = frame_meta.buf_pts
+    # ntp_ts = frame_meta.ntp_timestamp
+    # print(f'frame number: {frame_number}')
+    # print(f'frame pts (seconds): {pts / 1e9}')
+    # print(f'ntp timestamp (seconds): {ntp_ts / 1e9}')
 
     caps_format = caps.get_structure(0)
     video_format = GstVideo.VideoFormat.from_string(
