@@ -29,7 +29,7 @@ PGIE_CLASS_ID_ROADSIGN = 3
 def gst_to_np(sample):
     buffer = sample.get_buffer()
     # print('buffer: ', buf)
-    print(f'pts: {buffer.pts / 1e9} -- dts: {buffer.dts / 1e9} -- offset: {buffer.offset} -- duration: {buffer.duration / 1e9}')
+    # print(f'pts: {buffer.pts / 1e9} -- dts: {buffer.dts / 1e9} -- offset: {buffer.offset} -- duration: {buffer.duration / 1e9}')
     caps = sample.get_caps()
     print(caps.get_structure(0).get_value('format'))
     print(caps.get_structure(0).get_value('height'))
@@ -39,7 +39,6 @@ def gst_to_np(sample):
     batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buffer))
     l_frame = batch_meta.frame_meta_list
     frame_meta = pyds.NvDsFrameMeta.cast(l_frame.data)
-    print(f'frame meta: {frame_meta}')
     frame_number = frame_meta.frame_num
     pts = frame_meta.buf_pts
     ntp_ts = frame_meta.ntp_timestamp
@@ -120,20 +119,17 @@ class Pipeline:
 
     def _create_source_elements(self, file_path):
         # Source element for reading from the file
-        print("Creating Source \n ")
         source = Gst.ElementFactory.make("filesrc", "file-source")
         if not source:
             sys.stderr.write(" Unable to create Source \n")
 
         # Since the data format in the input file is elementary h264 stream,
         # we need a h264parser
-        print("Creating H264Parser \n")
         h264parser = Gst.ElementFactory.make("h264parse", "h264-parser")
         if not h264parser:
             sys.stderr.write(" Unable to create h264 parser \n")
 
         # Use nvdec_h264 for hardware accelerated decode on GPU
-        print("Creating Decoder \n")
         decoder = Gst.ElementFactory.make("nvv4l2decoder", "nvv4l2-decoder")
         if not decoder:
             sys.stderr.write(" Unable to create Nvv4l2 Decoder \n")
@@ -200,7 +196,7 @@ class Pipeline:
         caps = Gst.caps_from_string("video/x-raw, format=RGBA")
         sink.set_property("caps", caps)
         # sink.set_property("drop", True)
-        # sink.set_property("max_buffers", 1)
+        sink.set_property("max_buffers", 1)
         # sink.set_property("sync", False)
         sink.set_property("wait-on-eos", False)
         sink.connect("new-sample", new_buffer, sink)
