@@ -505,11 +505,11 @@ class PipelineCamera:
         return tee, queue_od, queue_seg
 
     def _link(self):
-        # self.source.link(self.tee)
-        # self.queue_od.link(self.nvvidconv_src)
-        self.source.link(self.nvvidconv_src)
+        self.source.link(self.tee)
+        self.queue_od.link(self.nvvidconv_src)
+        # self.source.link(self.nvvidconv_src)
         self.nvvidconv_src.link(self.caps_nvvidconv_src)
-        self.caps_nvvidconv_src.link(self.tee)
+        # self.caps_nvvidconv_src.link(self.tee)
 
         sinkpad = self.streammux.get_request_pad("sink_0")
         if not sinkpad:
@@ -528,10 +528,10 @@ class PipelineCamera:
         # self.nvvidconv.link(self.capsfilter)
         # self.capsfilter.link(self.sink)
 
-        # self.queue_seg.link(self.nvvidconv)
-        # self.nvvidconv.link(self.capsfilter)
-        # self.capsfilter.link(self.sink)
-        self.queue_seg.link(self.sink)
+        self.queue_seg.link(self.nvvidconv)
+        self.nvvidconv.link(self.capsfilter)
+        self.capsfilter.link(self.sink)
+        # self.queue_seg.link(self.sink)
 
     @staticmethod
     def _bus_call(bus, message, loop):
