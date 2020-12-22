@@ -12,7 +12,6 @@ gi.require_version('Gst', '1.0')
 gi.require_version('GstVideo', '1.0')
 
 from gi.repository import GObject, Gst, GstVideo
-from common.bus_call import bus_call
 from common.FPS import GETFPS
 
 import pyds
@@ -196,8 +195,8 @@ class Pipeline:
         sink.set_property("emit-signals", True)
         caps = Gst.caps_from_string("video/x-raw, format=RGBA")
         sink.set_property("caps", caps)
-        sink.set_property("drop", True)
-        sink.set_property("max_buffers", 3)
+        # sink.set_property("drop", True)
+        # sink.set_property("max_buffers", 3)
         # sink.set_property("sync", False)
         sink.set_property("wait-on-eos", False)
         sink.connect("new-sample", new_buffer, sink)
@@ -375,7 +374,7 @@ class PipelineCamera:
 
         od_sink_pad = self.queue_od.get_static_pad("sink")
         seg_sink_pad = self.queue_seg.get_static_pad("sink")
-        tee_od_pad = self.tee.get_request_pad('src_%u')
+        tee_od_pad = self.tee.get_request_pad("src_%u")
         tee_seg_pad = self.tee.get_request_pad("src_%u")
         # tee_od_pad = self.tee.get_request_pad('vid_src')
         # tee_seg_pad = self.tee.get_request_pad('vid_src')
