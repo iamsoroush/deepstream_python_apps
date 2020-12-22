@@ -528,10 +528,10 @@ class PipelineCamera:
         # self.nvvidconv.link(self.capsfilter)
         # self.capsfilter.link(self.sink)
 
-        self.queue_seg.link(self.nvvidconv)
-        self.nvvidconv.link(self.capsfilter)
-        self.capsfilter.link(self.sink)
-        # self.queue_seg.link(self.sink)
+        # self.queue_seg.link(self.nvvidconv)
+        # self.nvvidconv.link(self.capsfilter)
+        # self.capsfilter.link(self.sink)
+        self.queue_seg.link(self.sink)
 
     @staticmethod
     def _bus_call(bus, message, loop):
