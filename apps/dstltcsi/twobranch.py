@@ -67,6 +67,7 @@ def new_buffer(sink, data):
 
     sample = sink.emit("pull-sample")
     arr, pts = gst_to_np(sample)
+    print(f'data type: {arr.dtype}')
 
     # seg_map = segnet.predict(arr)
     # cv2.imwrite(f'{pts}.jpg', cv2.cvtColor(seg_map, cv2.COLOR_RGB2BGR))
