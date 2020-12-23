@@ -376,8 +376,7 @@ class PipelineCamera:
         seg_sink_pad = self.queue_seg.get_static_pad("sink")
         tee_od_pad = self.tee.get_request_pad("src_%u")
         tee_seg_pad = self.tee.get_request_pad("src_%u")
-        # tee_od_pad = self.tee.get_request_pad('vid_src')
-        # tee_seg_pad = self.tee.get_request_pad('vid_src')
+
         if not tee_od_pad or not tee_seg_pad:
             sys.stderr.write("Unable to get request pads\n")
         tee_od_pad.link(od_sink_pad)
@@ -509,17 +508,14 @@ class PipelineCamera:
         return tee, queue_od, queue_seg
 
     def _link(self):
-        # self.source.link(self.tee)
-        # self.queue_od.link(self.nvvidconv_src)
-        self.source.link(self.nvvidconv_src)
+        self.source.link(self.tee)
+        self.queue_od.link(self.nvvidconv_src)
         self.nvvidconv_src.link(self.caps_nvvidconv_src)
-        self.caps_nvvidconv_src.link(self.tee)
 
         sinkpad = self.streammux.get_request_pad("sink_0")
         if not sinkpad:
             sys.stderr.write(" Unable to get the sink pad of streammux \n")
-        # srcpad = self.caps_nvvidconv_src.get_static_pad("src")
-        srcpad = self.queue_od.get_static_pad("src")
+        srcpad = self.caps_nvvidconv_src.get_static_pad("src")
         if not srcpad:
             sys.stderr.write(" Unable to get source pad of decoder \n")
 
@@ -532,10 +528,9 @@ class PipelineCamera:
         # self.nvvidconv.link(self.capsfilter)
         # self.capsfilter.link(self.sink)
 
-        # self.queue_seg.link(self.nvvidconv)
-        # self.nvvidconv.link(self.capsfilter)
-        # self.capsfilter.link(self.sink)
-        self.queue_seg.link(self.sink)
+        self.queue_seg.link(self.nvvidconv)
+        self.nvvidconv.link(self.capsfilter)
+        self.capsfilter.link(self.sink)
 
     @staticmethod
     def _bus_call(bus, message, loop):
