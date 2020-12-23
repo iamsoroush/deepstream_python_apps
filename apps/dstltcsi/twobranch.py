@@ -518,8 +518,8 @@ class PipelineCamera:
         sinkpad = self.streammux.get_request_pad("sink_0")
         if not sinkpad:
             sys.stderr.write(" Unable to get the sink pad of streammux \n")
-        # srcpad = self.caps_nvvidconv_src.get_static_pad("src")
-        srcpad = self.queue_od.get_static_pad("src")
+        srcpad = self.caps_nvvidconv_src.get_static_pad("src")
+        # srcpad = self.queue_od.get_static_pad("src")
         if not srcpad:
             sys.stderr.write(" Unable to get source pad of decoder \n")
 
