@@ -2,6 +2,7 @@ import sys
 sys.path.append('../')
 sys.path.append('/opt/nvidia/deepstream/deepstream/lib')
 from time import sleep
+import time
 
 import numpy as np
 import cv2
@@ -62,12 +63,15 @@ def gst_to_np(sample):
 
 
 def new_buffer(sink, data):
+    start_time = time.time()
+
     sample = sink.emit("pull-sample")
-
     arr, pts = gst_to_np(sample)
-    cv2.imwrite(f'{pts}.jpg', cv2.cvtColor(arr, cv2.COLOR_RGB2BGR))
 
-    sleep(1)
+    # seg_map = segnet.predict(arr)
+    # cv2.imwrite(f'{pts}.jpg', cv2.cvtColor(seg_map, cv2.COLOR_RGB2BGR))
+
+    print(f'segmentation done: {time.time() - start_time}')
     return Gst.FlowReturn.OK
 
 
@@ -654,8 +658,9 @@ class PipelineCamera:
 if __name__ == '__main__':
     fps_stream = GETFPS(0)
 
-    out_file_name = '{}.mp4'.format(sys.argv[1])
-    in_file_path = sys.argv[2]
+    # out_file_name = '{}.mp4'.format(sys.argv[1])
+    # in_file_path = sys.argv[2]
+    out_file_name = 'out.mp4'
 
     # pipeline = Pipeline(output_file_path=out_file_name)
     # pipeline = Pipeline(in_file_path, output_file_path=out_file_name)
