@@ -18,12 +18,16 @@ from common.FPS import GETFPS
 import pyds
 
 from gstutils import get_num_channels, get_np_dtype
+from my_utils import Segmentor
 
 
 PGIE_CLASS_ID_VEHICLE = 0
 PGIE_CLASS_ID_BICYCLE = 1
 PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
+
+
+segmentor = Segmentor((720, 1280, 3))
 
 
 def gst_to_np(sample):
@@ -67,7 +71,9 @@ def new_buffer(sink, data):
 
     sample = sink.emit("pull-sample")
     arr, pts = gst_to_np(sample)
-    print(f'data type: {arr.dtype}')
+    # print(f'data type: {arr.dtype}')
+
+    segmentor.do_segmentation(arr, str(pts))
 
     # seg_map = segnet.predict(arr)
     # cv2.imwrite(f'{pts}.jpg', cv2.cvtColor(seg_map, cv2.COLOR_RGB2BGR))
