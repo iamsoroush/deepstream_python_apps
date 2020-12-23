@@ -498,6 +498,10 @@ class PipelineCamera:
         queue_od = Gst.ElementFactory.make("queue", "object detection queue")
         queue_seg = Gst.ElementFactory.make("queue", "segmentation queue")
 
+        queue_od.set_property("max-size-buffers", 3)
+        queue_seg.set_property("max-size-buffers", 3)
+        queue_seg.set_property("leaky", 2)
+
         self.pipeline.add(tee)
         self.pipeline.add(queue_od)
         self.pipeline.add(queue_seg)
