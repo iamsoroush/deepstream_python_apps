@@ -16,7 +16,6 @@ class Segmentor:
 
     def __init__(self,
                  input_image_shape,
-
                  network_name='fcn-resnet18-cityscapes'):
         self.net = jetson.inference.segNet(network_name)
         args = Args()
