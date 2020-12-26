@@ -5,8 +5,6 @@ from time import sleep
 import time
 
 import numpy as np
-import cv2
-
 import gi
 
 gi.require_version('Gst', '1.0')
@@ -27,18 +25,16 @@ PGIE_CLASS_ID_PERSON = 2
 PGIE_CLASS_ID_ROADSIGN = 3
 
 
-segmentor = Segmentor((720, 1280, 3))
+segmentor = Segmentor((720, 1280, 3), network_name='fcn-resnet18-cityscapes-1024x512')
 
 
 def gst_to_np(sample):
     buffer = sample.get_buffer()
-    # print('buffer: ', buf)
     # print(f'pts: {buffer.pts / 1e9} -- dts: {buffer.dts / 1e9} -- offset: {buffer.offset} -- duration: {buffer.duration / 1e9}')
     caps = sample.get_caps()
-    print(caps.get_structure(0).get_value('format'))
-    print(caps.get_structure(0).get_value('height'))
-    print(caps.get_structure(0).get_value('width'))
-    # print('n_meta: ', buffer.get_n_meta())
+    # print(caps.get_structure(0).get_value('format'))
+    # print(caps.get_structure(0).get_value('height'))
+    # print(caps.get_structure(0).get_value('width'))
 
     # batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(buffer))
     # l_frame = batch_meta.frame_meta_list
@@ -49,7 +45,7 @@ def gst_to_np(sample):
     # print(f'frame number: {frame_number}')
     # print(f'frame pts (seconds): {pts / 1e9}')
     # print(f'ntp timestamp (seconds): {ntp_ts / 1e9}')
-    print(f'from appsink, pts: {buffer.pts / 1e9}')
+    print(f'from appsink ------- pts: {buffer.pts / 1e9}')
 
     caps_format = caps.get_structure(0)
     video_format = GstVideo.VideoFormat.from_string(
@@ -78,7 +74,7 @@ def new_buffer(sink, data):
     # seg_map = segnet.predict(arr)
     # cv2.imwrite(f'{pts}.jpg', cv2.cvtColor(seg_map, cv2.COLOR_RGB2BGR))
 
-    print(f'segmentation done: {time.time() - start_time}')
+    print(f'--------- segmentation done: {time.time() - start_time} ----------')
     return Gst.FlowReturn.OK
 
 
@@ -489,7 +485,7 @@ class PipelineCamera:
         caps = Gst.caps_from_string("video/x-raw, format=RGBA")
         sink.set_property("caps", caps)
         sink.set_property("drop", True)
-        sink.set_property("max_buffers", 3)
+        sink.set_property("max_buffers", 1)
         # sink.set_property("sync", False)
         sink.set_property("wait-on-eos", False)
         sink.connect("new-sample", new_buffer, sink)
@@ -508,8 +504,8 @@ class PipelineCamera:
         queue_od = Gst.ElementFactory.make("queue", "object detection queue")
         queue_seg = Gst.ElementFactory.make("queue", "segmentation queue")
 
-        queue_od.set_property("max-size-buffers", 3)
-        queue_seg.set_property("max-size-buffers", 3)
+        queue_od.set_property("max-size-buffers", 1)
+        queue_seg.set_property("max-size-buffers", 1)
         queue_seg.set_property("leaky", 2)
 
         self.pipeline.add(tee)
@@ -594,7 +590,7 @@ class PipelineCamera:
             num_rects = frame_meta.num_obj_meta
             l_obj = frame_meta.obj_meta_list
             pts = frame_meta.buf_pts
-            print(f'from osd, pts: {pts / 1e9}')
+            print(f'from osd ------- pts: {pts / 1e9}')
             while l_obj is not None:
                 try:
                     # Casting l_obj.data to pyds.NvDsObjectMeta
@@ -652,7 +648,7 @@ class PipelineCamera:
             #     frame_image = cv2.cvtColor(frame_image, cv2.COLOR_RGBA2BGRA)
             #     cv2.imwrite("./frame_" + str(frame_number) + ".jpg",
             #                 frame_image)
-                # print('saved to')
+            #     print('saved to')
 
             try:
                 l_frame = l_frame.next
